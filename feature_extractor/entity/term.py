@@ -6,3 +6,6 @@ class Term(object):
 
     def __cmp__(self, other):
         return cmp(self.weight, other.weight)
+
+    def __lt__(self, other):
+        return self.weight < other.weight
