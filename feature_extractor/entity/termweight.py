@@ -20,7 +20,7 @@ class TfIdfWighter(TermWeight):
 
 class TfOnlyTermWeighter(TermWeight):
     def __init__(self, lexicon):
-        TermWeight.__init__(lexicon)
+        super(TfOnlyTermWeighter, self).__init__(lexicon)
 
     def cal_weight(self, word_id, tf):
         return tf

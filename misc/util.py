@@ -18,6 +18,12 @@ class Util(object):
             cate_id += 1
         cPickle.dump(cate_dic, open(self.config.category_pkl_path, 'wb'))
 
+    def save_collection_into_file(self, collection_file_path, contents):
+        collection_file = codecs.open(collection_file_path, 'wb', self.config.file_encodeing, 'ignore')
+        lined_contents = '\n'.join(contents)
+        collection_file.write(lined_contents)
+        collection_file.close()
+
 
 if __name__ == '__main__':
     util = Util()
