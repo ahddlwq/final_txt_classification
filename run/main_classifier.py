@@ -50,8 +50,9 @@ class MainClassifier(object):
     # 添加单篇文档
     def add_document(self, raw_document):
         document = Document(raw_document)
-        # if document.label_id > self.num_categories | document.label_id < 0:
-        #     print "Error category error"
+        if document.label not in self.category_dic:
+            print "Error category error"
+
         if self.cache_file is None:
             print "open file"
             self.cache_file = codecs.open(self.config.cache_file_path, 'wb', self.config.file_encodeing, 'ignore')
@@ -61,13 +62,13 @@ class MainClassifier(object):
         words = self.lexicon.convert_document(content_words)
         terms = self.training_vector_builder.build(words, False)
         try:
-            self.cache_file.write(document.label_id + '\t')
-            self.cache_file.write(len(terms) + '\t')
+            self.cache_file.write(str(self.category_dic[document.label]) + '\t')
+            self.cache_file.write(str(len(terms)) + '\t')
             if len(terms) > self.longest_length_doc:
                 self.longest_length_doc = len(terms)
             for term in terms:
-                self.cache_file.write(term.term_id + ":")
-                self.cache_file.write(term.weight + " ")
+                self.cache_file.write(str(term.term_id) + ":")
+                self.cache_file.write(str(term.weight) + " ")
             self.cache_file.write('\n')
         except:
             print "Error write cache error"
