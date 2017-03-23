@@ -7,4 +7,6 @@ class Document(object):
         self.summary = ""
         self.title = ""
         self.tag = []
+        self.label_id = 1
+        self.label = ""
         pass
