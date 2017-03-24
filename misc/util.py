@@ -1,7 +1,7 @@
 import cPickle
 import codecs
 
-from config.file_path_config import FilePathConfig
+from config.config import FilePathConfig
 
 
 class Util(object):
@@ -9,7 +9,7 @@ class Util(object):
         self.config = FilePathConfig()
         pass
 
-    def save_cate_dic(self):
+    def save_cate_dic_into_pkl(self):
         cate_file = codecs.open(self.config.category_file_path, "rb", self.config.file_encodeing, "ignore")
         cate_dic = {}
         cate_id = 0
@@ -27,4 +27,4 @@ class Util(object):
 
 if __name__ == '__main__':
     util = Util()
-    util.save_cate_dic()
+    util.save_cate_dic_into_pkl()

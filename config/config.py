@@ -9,12 +9,22 @@ class FilePathConfig(object):
     selected_lexicon_path = file_root_path + "selected_lexicon.txt"
     cache_file_path = file_root_path + "cache.txt"
 
+
+    file_encodeing = "UTF-8"
+    is_need_print_detail = False
+    max_num_features = 35000
+    train_ratio = 0.8
+    test_ratio = 0.2
+    # 是否使用二元字词
+    is_use_bigram = False
+    def __init__(self):
+        pass
+
+
+class ClassifierConfig(object):
     train_ratio = 0.8
     test_ratio = 0.2
     max_num_features = 35000
-    file_encodeing = "UTF-8"
-    is_need_print_detail = False
-
     # 是否使用二元字词
     is_use_bigram = False
 

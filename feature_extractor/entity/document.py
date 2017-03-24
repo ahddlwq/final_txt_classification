@@ -1,5 +1,5 @@
 # coding=UTF-8
-from config.file_path_config import FilePathConfig
+from config.config import ClassifierConfig
 from feature_extractor.word_extractor.bigram_extractor import BiGramExtractor
 from feature_extractor.word_extractor.common_word_extractor import CommonWordExtractor
 
@@ -23,7 +23,7 @@ class Document(object):
         self.raw_content = split_data[2].strip()
         self.label = split_data[3].strip()
 
-        if (FilePathConfig.is_use_bigram):
+        if (ClassifierConfig.is_use_bigram):
             self.abstract_extractor = BiGramExtractor()
         else:
             self.abstract_extractor = CommonWordExtractor()

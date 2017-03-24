@@ -1,5 +1,7 @@
 # coding=UTF-8
 from word import Word
+
+
 class Lexicon(object):
     def __init__(self):
         self.id_dic = dict()
@@ -12,7 +14,7 @@ class Lexicon(object):
         pass
 
     def get_word(self, word_id):
-        return self.id_dic[word_id]
+        return self.id_dic.get(word_id, None)
 
     def add_document(self, doc_words):
         self.term_set.clear()
