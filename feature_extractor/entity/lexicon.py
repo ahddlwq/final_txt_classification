@@ -1,4 +1,6 @@
 # coding=UTF-8
+import copy
+
 from word import Word
 
 
@@ -66,5 +68,17 @@ class Lexicon(object):
     def build_word(self):
         pass
 
-    def map(self):
-        pass
+    def map(self, translation_dic):
+        new_lexicon = Lexicon()
+        new_id_dic = dict()
+        new_name_dic = dict()
+        for key, value in translation_dic.items():
+            word = self.id_dic.get(key)
+            new_word = copy.copy(word)
+            new_word.word_id = value
+            new_id_dic[new_word.word_id] = new_word
+            new_name_dic[new_word.name] = new_word
+        new_lexicon.id_dic = new_id_dic
+        new_lexicon.name_dic = new_name_dic
+        new_lexicon.num_docs = self.num_docs
+        return new_lexicon

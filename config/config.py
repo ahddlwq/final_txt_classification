@@ -7,6 +7,7 @@ class FilePathConfig(object):
     test_corpus_path = file_root_path + "test.json"
     raw_lexicon_path = file_root_path + "raw_lexicon.txt"
     selected_lexicon_path = file_root_path + "selected_lexicon.txt"
+    selected_features_path = file_root_path + "selected_features.txt"
     cache_file_path = file_root_path + "cache.txt"
 
 
