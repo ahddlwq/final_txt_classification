@@ -8,6 +8,7 @@ class TestResult(object):
         pass
 
     def __str__(self):
-        return "Test set size: " + self.test_size + "\n" \
-               + "[MacroAverage]: " + " Precision: " + self.macro_precision + " Recall: " + self.macro_recall + " FMeasure: " + self.macro_fmeasure + "\n" \
-               + "[MicroAverage]: " + self.micro_average;
+        return "Test set size: " + str(self.test_size) + "\n" \
+               + "[MacroAverage]: " + " Precision: " + str(self.macro_precision) + " Recall: " + str(
+            self.macro_recall) + " FMeasure: " + str(self.macro_fmeasure) + "\n" \
+               + "[MicroAverage]: " + str(self.micro_average)

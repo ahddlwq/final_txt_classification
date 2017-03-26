@@ -23,6 +23,7 @@ class FilePathConfig(object):
 
 
 class ClassifierConfig(object):
+    file_root_path = "../file/"
     train_ratio = 0.8
     test_ratio = 0.2
     max_num_features = 35000
@@ -31,3 +32,12 @@ class ClassifierConfig(object):
 
     def __init__(self):
         pass
+
+    rf_model_with_common_feature = file_root_path + "rf_model.pkl"
+    gbdt_model_with_common_feature = file_root_path + "rf_model.pkl"
+    svm_model_with_common_feature = file_root_path + "svm_model.pkl"
+    boosting_model_with_common_feature = file_root_path + "rf_model.pkl"
+
+    rf_prams = {}
+    gbdt_prams = {}
+    svm_prams = {}

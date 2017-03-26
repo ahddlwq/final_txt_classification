@@ -2,7 +2,7 @@
 import cPickle
 import codecs
 
-from config.config import FilePathConfig
+from config.config import FilePathConfig, ClassifierConfig
 from feature_extractor.entity.document import Document
 from feature_extractor.entity.document_vector import DocumentVector
 from feature_extractor.entity.lexicon import Lexicon
@@ -36,8 +36,7 @@ class MainClassifier(object):
         selected_features_queue = self.select_function.feature_select(self.config.cache_file_path, self.lexicon,
                                                                       self.num_categories, self.num_doc)
 
-        self.output_selected_features(set(selected_features_queue))
-        fid_dic = self.get_fid_dic(selected_features_queue)
+        fid_dic = self.output_selected_features_And_get_fid_dic(selected_features_queue)
 
         # print len(fid_dic), "fid_dic"
         #
@@ -57,27 +56,22 @@ class MainClassifier(object):
             print "close cache"
             self.cache_file.close()
 
-    def get_fid_dic(self, selected_features_queue):
+    def output_selected_features_And_get_fid_dic(self, selected_features_queue):
+        selected_features_file = codecs.open(self.config.selected_features_path, 'wb', self.config.file_encodeing,
+                                             'ignore')
         fid_dic = dict()
         feature_to_sort = list()
         while selected_features_queue.qsize() > 0:
             term = selected_features_queue.get()
             feature_to_sort.append(term)
-
-        sorted(feature_to_sort)
-        for i in range(0, len(feature_to_sort)):
-            fid_dic[term.term_id] = i
-        return fid_dic
-
-    def output_selected_features(self, selected_features_array):
-        selected_features_file = codecs.open(self.config.selected_features_path, 'wb', self.config.file_encodeing,
-                                             'ignore')
-        for term in selected_features_array:
             content = self.lexicon.get_word(term.term_id).name + " " + str(term.weight)
             selected_features_file.write(content + "\n")
 
         selected_features_file.close()
-
+        sorted(feature_to_sort)
+        for i in range(0, len(feature_to_sort)):
+            fid_dic[term.term_id] = i
+        return fid_dic
 
 
     # 加载类别与编号字典
@@ -141,21 +135,48 @@ class MainClassifier(object):
         raw_documents = codecs.open(raw_documents_file_path, 'rb', self.config.file_encodeing, 'ignore')
         self.classify_documents(raw_documents)
 
+    # 从文件加载字典对象
+    def load_lexicon_from_pkl(self):
+        pass
+
     # 打印分类结果
     def print_classify_result(self):
         pass
 
-    # 以随机森林分类器进行分类
-    def run_as_rf_classifier(self):
+    def train(self):
         pass
 
-    # 以GBDT分类器进行分类
-    def run_as_gbdt_classifier(self):
+    # 以随机森林分类器进对常见的特征进行分类
+    def run_as_rf_classifier_with_common_feature(self, jsons):
+        model = self.load_model(ClassifierConfig.rf_model_with_common_feature)
+        self.run_classifier_with_common_feature(model, jsons)
         pass
 
-    # 以总的boosting进行分类
-    def run_as_boosting_classifier(self):
+    # 以GBDT分类器进行对常见的特征进行分类
+    def run_as_gbdt_classifier_with_common_feature(self, jsons):
+        model = self.load_model(ClassifierConfig.gbdt_model_with_common_feature)
+        self.run_classifier_with_common_feature(model, jsons)
         pass
+
+    # 通用的对常见特征进行分类
+    def run_classifier_with_common_feature(self, model, jsons):
+        for json in jsons:
+            documents = Document(json)
+            model.predict(self.lexicon.convert_document(documents.get_content_words()))
+
+    # 以SVM分类器进行对常见的特征进行分类
+    def run_as_svm_classifier_with_common_feature(self, jsons):
+        model = self.load_model(ClassifierConfig.svm_model_with_common_feature)
+        self.run_classifier_with_common_feature(model, jsons)
+
+    # 以总的boosting对常见的特征进行分类
+    def run_as_boosting_classifier_with_common_feature(self):
+        pass
+
+    def load_model(self, model_path=None):
+        if model_path is None:
+            model_path = ClassifierConfig.svm_model_with_common_feature
+        return cPickle.load(open(model_path, 'r'))
 
 
 if __name__ == '__main__':

@@ -15,7 +15,7 @@ class Document(object):
         self.summary = ""
         self.title = ""
         self.tag = []
-        self.label_id = 1
+        self.label_id = -1
         self.label = ""
         self.raw_content = ""
 
@@ -33,3 +33,6 @@ class Document(object):
             return self.abstract_extractor.extract(self.raw_content)
         else:
             return self.words
+
+    def get_new_feature(self):
+        pass
