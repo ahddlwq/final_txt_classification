@@ -9,14 +9,13 @@ from feature_extractor.entity.lexicon import Lexicon
 from feature_extractor.entity.termweight import TfOnlyTermWeighter
 from feature_extractor.feature_selection_functions.chi_square import ChiSquare
 from misc.util import Util
-from model.svm_classifier import SVMClassifier
 
 
 class MainClassifier(object):
     def __init__(self):
         self.config = FilePathConfig()
         # 默认为SVM分类器
-        self.abstract_classifier = SVMClassifier()
+        self.abstract_classifier = self.load_model(None)
         self.category_dic = self.load_category_dic_from_pkl()
         self.num_categories = len(self.category_dic)
         self.lexicon = Lexicon()
@@ -27,6 +26,7 @@ class MainClassifier(object):
         self.test_vector_builder = None
         self.num_doc = 0
         self.select_function = ChiSquare()
+        self.model = None
 
     def construct_lexicon(self):
         self.add_documents_from_file(self.config.train_corpus_path)
@@ -146,31 +146,47 @@ class MainClassifier(object):
     def train(self):
         pass
 
-    # 以随机森林分类器进对常见的特征进行分类
-    def run_as_rf_classifier_with_common_feature(self, jsons):
-        model = self.load_model(ClassifierConfig.rf_model_with_common_feature)
-        self.run_classifier_with_common_feature(model, jsons)
-        pass
-
-    # 以GBDT分类器进行对常见的特征进行分类
-    def run_as_gbdt_classifier_with_common_feature(self, jsons):
-        model = self.load_model(ClassifierConfig.gbdt_model_with_common_feature)
-        self.run_classifier_with_common_feature(model, jsons)
-        pass
-
     # 通用的对常见特征进行分类
     def run_classifier_with_common_feature(self, model, jsons):
         for json in jsons:
             documents = Document(json)
-            model.predict(self.lexicon.convert_document(documents.get_content_words()))
+            classify_result = model.classify(self.lexicon.convert_document(documents.get_content_words()))
+            print classify_result
 
-    # 以SVM分类器进行对常见的特征进行分类
-    def run_as_svm_classifier_with_common_feature(self, jsons):
-        model = self.load_model(ClassifierConfig.svm_model_with_common_feature)
-        self.run_classifier_with_common_feature(model, jsons)
+    def run_as_rf_with_common_feature(self, jsons):
+        self.run_classifier_with_common_feature(self.load_model(ClassifierConfig.rf_model_with_common_feature), jsons)
+
+    def run_as_gbdt_with_common_feature(self, jsons):
+        self.run_classifier_with_common_feature(self.load_model(ClassifierConfig.gbdt_model_with_common_feature), jsons)
+
+    def run_as_svm_with_common_feature(self, jsons):
+        self.run_classifier_with_common_feature(self.load_model(ClassifierConfig.svm_model_with_common_feature), jsons)
 
     # 以总的boosting对常见的特征进行分类
     def run_as_boosting_classifier_with_common_feature(self):
+        pass
+
+    # 通用的对常见特征进行分类
+    def run_classifier_with_new_feature(self, model, jsons):
+        for json in jsons:
+            documents = Document(json)
+            classify_result = model.classify(self.lexicon.convert_document(documents.get_content_words()))
+            print classify_result
+
+    def run_as_rf_with_new_feature(self, jsons):
+        self.run_classifier_with_new_feature(self.load_model(ClassifierConfig.rf_model_with_common_feature),
+                                             jsons)
+
+    def run_as_gbdt_with_new_feature(self, jsons):
+        self.run_classifier_with_new_feature(self.load_model(ClassifierConfig.gbdt_model_with_common_feature),
+                                             jsons)
+
+    def run_as_svm_with_new_feature(self, jsons):
+        self.run_classifier_with_new_feature(self.load_model(ClassifierConfig.svm_model_with_common_feature),
+                                             jsons)
+
+    # 以总的boosting对常见的特征进行分类
+    def run_as_boosting_classifier_with_new_feature(self):
         pass
 
     def load_model(self, model_path=None):
