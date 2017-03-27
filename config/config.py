@@ -10,6 +10,8 @@ class FilePathConfig(object):
     selected_features_path = file_root_path + "selected_features.txt"
     cache_file_path = file_root_path + "cache.txt"
 
+    sparse_feature_mat_path = file_root_path + "sparse_feature_mat.txt"
+
     lexicon_pkl_path = file_root_path + "lexicon.pkl"
 
     file_encodeing = "UTF-8"
@@ -42,7 +44,7 @@ class ClassifierConfig(object):
 
     # 当前系统是使用boosting，还是单模型进行训练和测试
     is_single_model = True
-    cur_model = rf_name
+    cur_single_model = rf_name
 
     # 现在需要进行boosting的分类器集合
     using_classifiers = [rf_name, gbdt_name, svm_name]
@@ -50,6 +52,15 @@ class ClassifierConfig(object):
     rf_model_with_common_feature = file_root_path + "rf_model.pkl"
     gbdt_model_with_common_feature = file_root_path + "rf_model.pkl"
     svm_model_with_common_feature = file_root_path + "svm_model.pkl"
+
+    classifier_dic = {rf_name: rf_model_with_common_feature,
+                      gbdt_name: gbdt_model_with_common_feature,
+                      svm_name: svm_model_with_common_feature}
+
+    classifier_weight_dic = {rf_name: 1,
+                             gbdt_name: 1,
+                             svm_name: 1}
+
     boosting_model_with_common_feature = file_root_path + "rf_model.pkl"
 
     boosting_weight_dic_with_common_feature = file_root_path + "boosting_weight_dic.pkl"

@@ -11,12 +11,12 @@ from select_function import SelectFunction
 
 class ChiSquare(SelectFunction):
     def __init__(self):
-        self.config = FilePathConfig()
         pass
 
-    def feature_select(self, cache_file_path, lexicon, num_categories, num_doc):
+    def feature_select(self, lexicon, num_categories, num_doc):
         print "selection"
-        data = codecs.open(cache_file_path, 'rb', self.config.file_encodeing, 'ignore')
+        cache_file_path = FilePathConfig.cache_file_path
+        data = codecs.open(cache_file_path, 'rb', FilePathConfig.file_encodeing, 'ignore')
         # 默认是int64,但是其实用int32就够了，节省内存，int32最大能够到21亿，我们最大只需要几百万
         feature_stat = np.zeros((len(lexicon.name_dic), num_categories), dtype=np.int32)
         feature_freq = np.zeros(len(lexicon.name_dic), dtype=np.int32)
@@ -49,10 +49,11 @@ class ChiSquare(SelectFunction):
         except Exception, e:
             print "Error selection error"
             print 'e.message:\t', e.message
-            data.close()
+
+        data.close()
 
         print "start cal chi_square", num_doc, num_categories
-        selected_features_queue = PriorityQueue(self.config.max_num_features + 1)
+        selected_features_queue = PriorityQueue(FilePathConfig.max_num_features + 1)
         for i in range(0, len(lexicon.name_dic)):
             word = lexicon.get_word(i)
             if word is not None:
@@ -78,7 +79,7 @@ class ChiSquare(SelectFunction):
 
             term = Term(i, chi_max)
             selected_features_queue.put(term)
-            if selected_features_queue.qsize() > self.config.max_num_features:
+            if selected_features_queue.qsize() > FilePathConfig.max_num_features:
                 selected_features_queue.get()
         print selected_features_queue.qsize()
         return selected_features_queue

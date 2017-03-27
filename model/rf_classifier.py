@@ -1,6 +1,7 @@
 import cPickle
 
 from abstract_classifier import AbstractClassifier
+from config.config import ClassifierConfig
 
 
 class RFClassifier(AbstractClassifier):
@@ -9,7 +10,7 @@ class RFClassifier(AbstractClassifier):
         pass
 
     def load_model(self):
-        self.model = cPickle.load(open(self.config.rf_model_with_common_feature, 'r'))
+        self.model = cPickle.load(open(ClassifierConfig.rf_model_with_common_feature, 'r'))
 
     def classify(self, document):
         pass

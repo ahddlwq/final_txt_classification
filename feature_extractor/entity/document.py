@@ -3,6 +3,7 @@ from config.config import ClassifierConfig
 from feature_extractor.word_extractor.bigram_extractor import BiGramExtractor
 from feature_extractor.word_extractor.common_word_extractor import CommonWordExtractor
 
+
 class Document(object):
     def __init__(self, raw_document):
         split_data = raw_document.split('\t')
