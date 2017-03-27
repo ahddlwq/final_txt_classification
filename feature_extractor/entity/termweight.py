@@ -10,7 +10,7 @@ class TermWeight(object):
 
 class TfIdfWighter(TermWeight):
     def __init__(self, lexicon):
-        TermWeight.__init__(lexicon)
+        super(TfIdfWighter, self).__init__(lexicon)
 
     def cal_weight(self, word_id, tf):
         num_docs = self.lexicon.num_docs

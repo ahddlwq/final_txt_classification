@@ -10,6 +10,7 @@ class FilePathConfig(object):
     selected_features_path = file_root_path + "selected_features.txt"
     cache_file_path = file_root_path + "cache.txt"
 
+    lexicon_pkl_path = file_root_path + "lexicon.pkl"
 
     file_encodeing = "UTF-8"
     is_need_print_detail = False
@@ -18,6 +19,7 @@ class FilePathConfig(object):
     test_ratio = 0.2
     # 是否使用二元字词
     is_use_bigram = False
+
     def __init__(self):
         pass
 
@@ -30,14 +32,27 @@ class ClassifierConfig(object):
     # 是否使用二元字词
     is_use_bigram = False
 
-    def __init__(self):
-        pass
+    # 分类器代号
+    rf_name = "rf"
+    gbdt_name = "gbdt"
+    svm_name = "svm"
+    rf_prams = {}
+    gbdt_prams = {}
+    svm_prams = {}
+
+    # 当前系统是使用boosting，还是单模型进行训练和测试
+    is_single_model = True
+    cur_model = rf_name
+
+    # 现在需要进行boosting的分类器集合
+    using_classifiers = [rf_name, gbdt_name, svm_name]
 
     rf_model_with_common_feature = file_root_path + "rf_model.pkl"
     gbdt_model_with_common_feature = file_root_path + "rf_model.pkl"
     svm_model_with_common_feature = file_root_path + "svm_model.pkl"
     boosting_model_with_common_feature = file_root_path + "rf_model.pkl"
 
-    rf_prams = {}
-    gbdt_prams = {}
-    svm_prams = {}
+    boosting_weight_dic_with_common_feature = file_root_path + "boosting_weight_dic.pkl"
+
+    def __init__(self):
+        pass

@@ -6,8 +6,10 @@ from config.config import FilePathConfig, ClassifierConfig
 from feature_extractor.entity.document import Document
 from feature_extractor.entity.document_vector import DocumentVector
 from feature_extractor.entity.lexicon import Lexicon
-from feature_extractor.entity.termweight import TfOnlyTermWeighter
+from feature_extractor.entity.termweight import TfOnlyTermWeighter, TfIdfWighter
 from feature_extractor.feature_selection_functions.chi_square import ChiSquare
+from feature_extractor.feature_selection_functions.speech_filter import SpeechFilter
+from feature_extractor.feature_selection_functions.stop_word_filter import StopWordFilter
 from misc.util import Util
 
 
@@ -15,40 +17,40 @@ class MainClassifier(object):
     def __init__(self):
         self.config = FilePathConfig()
         # 默认为SVM分类器
-        self.abstract_classifier = self.load_model(None)
+        self.abstract_classifier = None
         self.category_dic = self.load_category_dic_from_pkl()
         self.num_categories = len(self.category_dic)
-        self.lexicon = Lexicon()
+        self.lexicon = self.load_lexicon()
         self.util = Util()
         self.cache_file = None
         self.longest_length_doc = 0
         self.training_vector_builder = DocumentVector(TfOnlyTermWeighter(self.lexicon))
-        self.test_vector_builder = None
+        self.test_vector_builder = DocumentVector(TfIdfWighter(self.lexicon))
         self.num_doc = 0
         self.select_function = ChiSquare()
         self.model = None
 
+    # 这一部分主要都是前期模型的训练，准备
+    # ---------------------------------------------------------------------------------------------
     def construct_lexicon(self):
+        # 从原始语料中转换成稀疏矩阵，保存在cache中，同时会在lexicon里保存下所有的id_dic和name_dic
         self.add_documents_from_file(self.config.train_corpus_path)
+        #关闭cache
         self.close_cache()
-        self.util.save_collection_into_file(self.config.raw_lexicon_path, self.lexicon.name_dic.keys())
-        print self.config.cache_file_path, self.num_categories, self.num_doc, len(self.lexicon.name_dic)
+        # #将原始的所有词库保存下来
+        # self.util.save_collection_into_file(self.config.raw_lexicon_path, self.lexicon.name_dic.keys())
+        #进行特征降维,返回一个保存了所有特征id的优先队列
         selected_features_queue = self.select_function.feature_select(self.config.cache_file_path, self.lexicon,
                                                                       self.num_categories, self.num_doc)
 
-        fid_dic = self.output_selected_features_And_get_fid_dic(selected_features_queue)
+        # 获取选择后的特征对应的id，并保存下所有的特征，这里之所以两个功能一起做，是由于优先队列出队的不可逆性
+        fid_dic = self.output_selected_features_and_get_fid_dic(selected_features_queue)
 
-        # print len(fid_dic), "fid_dic"
-        #
-        # #根据选择后的特征，重新调整词典
-        # self.lexicon = self.lexicon.map(fid_dic)
-        #
-        # print len(self.lexicon.name_dic)
-        # self.util.save_collection_into_file(self.config.selected_lexicon_path,self.lexicon.name_dic.keys())
-
-        # self.lexicon.locked = True
-        # self.training_vector_builder = None
-        # self.test_vector_builder = DocumentVector(TfIdfWighter(self.lexicon))
+        # 根据选择后的特征，重新调整词典id的映射关系
+        self.lexicon = self.lexicon.map(fid_dic)
+        self.lexicon.locked = True
+        # 保存下词典文件
+        self.save_lexicon_into_pkl()
 
     def close_cache(self):
         # 添加完后，关闭文件
@@ -56,7 +58,7 @@ class MainClassifier(object):
             print "close cache"
             self.cache_file.close()
 
-    def output_selected_features_And_get_fid_dic(self, selected_features_queue):
+    def output_selected_features_and_get_fid_dic(self, selected_features_queue):
         selected_features_file = codecs.open(self.config.selected_features_path, 'wb', self.config.file_encodeing,
                                              'ignore')
         fid_dic = dict()
@@ -70,25 +72,25 @@ class MainClassifier(object):
         selected_features_file.close()
         sorted(feature_to_sort)
         for i in range(0, len(feature_to_sort)):
-            fid_dic[term.term_id] = i
+            fid_dic[feature_to_sort[i].term_id] = i
         return fid_dic
 
-
-    # 加载类别与编号字典
-    # 返回内容类似为{"时政":1,"军事":2,……}
-    def load_category_dic_from_pkl(self):
-        return cPickle.load(open(self.config.category_pkl_path, 'r'))
-
-    # 添加单篇文档
+    # 添加单篇文档用于构造词典
     def add_document(self, raw_document):
         document = Document(raw_document)
+
+        #检查类别是否合法
         if document.label not in self.category_dic:
             print "Error category error"
-
+        #如果cache文件还未打开，则打开
         if self.cache_file is None:
             print "open file"
             self.cache_file = codecs.open(self.config.cache_file_path, 'wb', self.config.file_encodeing, 'ignore')
 
+        # 添加词的过滤器
+        stop_words_filter = StopWordFilter()
+        speech_filter = SpeechFilter()
+        document.add_filter(speech_filter).add_filter(stop_words_filter)
         content_words = document.get_content_words()
         self.lexicon.add_document(content_words)
         words = self.lexicon.convert_document(content_words)
@@ -100,7 +102,7 @@ class MainClassifier(object):
             line_result = str(self.category_dic[document.label]) + '\t'
             for term in terms:
                 line_result += (str(term.term_id) + ":" + str(term.weight))
-                line_result += ","
+                line_result += " "
             # 去除最后一个逗号
             line_result = line_result[:-1]
             self.cache_file.write(line_result + '\n')
@@ -135,65 +137,106 @@ class MainClassifier(object):
         raw_documents = codecs.open(raw_documents_file_path, 'rb', self.config.file_encodeing, 'ignore')
         self.classify_documents(raw_documents)
 
-    # 从文件加载字典对象
-    def load_lexicon_from_pkl(self):
-        pass
-
     # 打印分类结果
     def print_classify_result(self):
         pass
 
-    def train(self):
+    def train(self, feature_mat, label_vec):
+        # self.construct_lexicon()
+
+        self.model = self.abstract_classifier.train(feature_mat, label_vec)
+        pass
+
+    def get_feature_mat_from_cache_file(self):
+
+        pass
+
+    def test(self, feature_mat, label_vec):
+
         pass
 
     # 通用的对常见特征进行分类
-    def run_classifier_with_common_feature(self, model, jsons):
-        for json in jsons:
-            documents = Document(json)
-            classify_result = model.classify(self.lexicon.convert_document(documents.get_content_words()))
-            print classify_result
+    def run_classifier_with_common_feature(self, model, feature_mat):
+        classify_results = []
+        for feature_vec in feature_mat:
+            classify_result = model.classify(feature_vec)
+        classify_results.append(classify_result)
+        return classify_results
 
-    def run_as_rf_with_common_feature(self, jsons):
-        self.run_classifier_with_common_feature(self.load_model(ClassifierConfig.rf_model_with_common_feature), jsons)
+    def run_as_rf_with_common_feature(self, feature_mat):
+        self.run_classifier_with_common_feature(self.load_model(ClassifierConfig.rf_model_with_common_feature),
+                                                feature_mat)
 
-    def run_as_gbdt_with_common_feature(self, jsons):
-        self.run_classifier_with_common_feature(self.load_model(ClassifierConfig.gbdt_model_with_common_feature), jsons)
+    def run_as_gbdt_with_common_feature(self, feature_mat):
+        self.run_classifier_with_common_feature(self.load_model(ClassifierConfig.gbdt_model_with_common_feature),
+                                                feature_mat)
 
-    def run_as_svm_with_common_feature(self, jsons):
-        self.run_classifier_with_common_feature(self.load_model(ClassifierConfig.svm_model_with_common_feature), jsons)
-
-    # 以总的boosting对常见的特征进行分类
-    def run_as_boosting_classifier_with_common_feature(self):
-        pass
-
-    # 通用的对常见特征进行分类
-    def run_classifier_with_new_feature(self, model, jsons):
-        for json in jsons:
-            documents = Document(json)
-            classify_result = model.classify(self.lexicon.convert_document(documents.get_content_words()))
-            print classify_result
-
-    def run_as_rf_with_new_feature(self, jsons):
-        self.run_classifier_with_new_feature(self.load_model(ClassifierConfig.rf_model_with_common_feature),
-                                             jsons)
-
-    def run_as_gbdt_with_new_feature(self, jsons):
-        self.run_classifier_with_new_feature(self.load_model(ClassifierConfig.gbdt_model_with_common_feature),
-                                             jsons)
-
-    def run_as_svm_with_new_feature(self, jsons):
-        self.run_classifier_with_new_feature(self.load_model(ClassifierConfig.svm_model_with_common_feature),
-                                             jsons)
+    def run_as_svm_with_common_feature(self, feature_mat):
+        self.run_classifier_with_common_feature(self.load_model(ClassifierConfig.svm_model_with_common_feature),
+                                                feature_mat)
 
     # 以总的boosting对常见的特征进行分类
-    def run_as_boosting_classifier_with_new_feature(self):
+    def run_as_boosting_classifier_with_common_feature(self, jsons):
+        feature_mat = self.json_to_feature_vec(jsons)
+        pre_classify_results_dic = dict()
+        rf_results = self.run_as_rf_with_common_feature(feature_mat)
+        gbdt_results = self.run_as_gbdt_with_common_feature(feature_mat)
+        svm_results = self.run_as_svm_with_common_feature(feature_mat)
+        pre_classify_results_dic["rf"] = rf_results
+        pre_classify_results_dic["gbdt"] = gbdt_results
+        pre_classify_results_dic["svm"] = svm_results
+        weight = self.load_weight_dic()
+        final_classify_result = self.run_boosting(pre_classify_results_dic, weight)
+
+    def run_boosting(self, pre_classify_results_dic, weight):
         pass
+
+    # 将传进来的批量json转换为可用于分类的特征向量矩阵
+    def json_to_feature_vec(self, jsons, has_label=False):
+        feature_mat = []
+        label_vec = []
+        # 如果传进来的只是单json，则转换一下
+        if type(jsons) is str:
+            jsons = [jsons]
+
+        for json in jsons:
+            document = Document(json)
+            feature_mat.append(self.lexicon.convert_document(document.get_content_words()))
+            if has_label:
+                label_vec.append(document.label_id)
+        if has_label:
+            return feature_mat, label_vec
+        else:
+            return feature_mat
 
     def load_model(self, model_path=None):
         if model_path is None:
             model_path = ClassifierConfig.svm_model_with_common_feature
         return cPickle.load(open(model_path, 'r'))
 
+    def load_lexicon(self, lexicon_path=None):
+        if lexicon_path is None:
+            return Lexicon()
+        else:
+            return cPickle.load(open(lexicon_path, 'r'))
+
+    def load_weight_dic_from_pkl(self):
+        return cPickle.load(open(ClassifierConfig.boosting_weight_dic_with_common_feature, 'r'))
+
+    def save_model(self):
+        pass
+
+    # 从文件加载字典对象
+    def load_lexicon_from_pkl(self):
+        pass
+
+    # 加载类别与编号字典
+    # 返回内容类似为{"时政":1,"军事":2,……}
+    def load_category_dic_from_pkl(self):
+        return cPickle.load(open(self.config.category_pkl_path, 'r'))
+
+    def save_lexicon_into_pkl(self):
+        cPickle.dump(self.lexicon, open(FilePathConfig.lexicon_pkl_path, 'wb'))
 
 if __name__ == '__main__':
     mainClassifier = MainClassifier()

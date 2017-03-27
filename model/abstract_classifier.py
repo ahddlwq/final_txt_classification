@@ -1,5 +1,5 @@
 from config.config import ClassifierConfig
-from model.single_classify_result import SingleClassifyResult
+from evaluation.single_classify_result import SingleClassifyResult
 class AbstractClassifier(object):
     config = ClassifierConfig()
     def __init__(self):
