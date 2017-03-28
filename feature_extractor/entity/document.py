@@ -36,7 +36,7 @@ class Document(object):
         return self
 
     # 目前因为已经把数据处理好，所以加了一层检验
-    def get_content_words(self):
+    def get_content_words_feature(self):
         if len(self.words) == 0:
             raw_content = self.abstract_extractor.extract(self.raw_content)
         else:

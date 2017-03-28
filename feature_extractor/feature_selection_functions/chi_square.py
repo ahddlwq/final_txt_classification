@@ -4,7 +4,7 @@ from Queue import PriorityQueue
 
 import numpy as np
 
-from config.config import FilePathConfig
+from config.config import FilePathConfig, ClassifierConfig
 from feature_extractor.entity.term import Term
 from select_function import SelectFunction
 
@@ -47,13 +47,12 @@ class ChiSquare(SelectFunction):
                     print "sanned", num_docs_read
                 num_docs_read += 1
         except Exception, e:
-            print "Error selection error"
             print 'e.message:\t', e.message
 
         data.close()
 
         print "start cal chi_square", num_doc, num_categories
-        selected_features_queue = PriorityQueue(FilePathConfig.max_num_features + 1)
+        selected_features_queue = PriorityQueue(ClassifierConfig.max_num_features + 1)
         for i in range(0, len(lexicon.name_dic)):
             word = lexicon.get_word(i)
             if word is not None:
@@ -79,7 +78,6 @@ class ChiSquare(SelectFunction):
 
             term = Term(i, chi_max)
             selected_features_queue.put(term)
-            if selected_features_queue.qsize() > FilePathConfig.max_num_features:
+            if selected_features_queue.qsize() > ClassifierConfig.max_num_features:
                 selected_features_queue.get()
-        print selected_features_queue.qsize()
         return selected_features_queue

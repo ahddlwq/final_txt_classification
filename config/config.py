@@ -1,10 +1,14 @@
 # coding=UTF-8
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.svm import LinearSVC
+
+
 class FilePathConfig(object):
     file_root_path = "../file/"
     category_pkl_path = file_root_path + "category.pkl"
     category_file_path = file_root_path + "category.txt"
     train_corpus_path = file_root_path + "train.json"
-    test_corpus_path = file_root_path + "test.json"
+    test_corpus_path = file_root_path + "train.json"
     raw_lexicon_path = file_root_path + "raw_lexicon.txt"
     selected_lexicon_path = file_root_path + "selected_lexicon.txt"
     selected_features_path = file_root_path + "selected_features.txt"
@@ -16,11 +20,6 @@ class FilePathConfig(object):
 
     file_encodeing = "UTF-8"
     is_need_print_detail = False
-    max_num_features = 35000
-    train_ratio = 0.8
-    test_ratio = 0.2
-    # 是否使用二元字词
-    is_use_bigram = False
 
     def __init__(self):
         pass
@@ -44,26 +43,38 @@ class ClassifierConfig(object):
 
     # 当前系统是使用boosting，还是单模型进行训练和测试
     is_single_model = True
-    cur_single_model = rf_name
+    cur_single_model = svm_name
 
     # 现在需要进行boosting的分类器集合
-    using_classifiers = [rf_name, gbdt_name, svm_name]
+    boosting_using_classifiers = [rf_name, gbdt_name, svm_name]
 
-    rf_model_with_common_feature = file_root_path + "rf_model.pkl"
-    gbdt_model_with_common_feature = file_root_path + "rf_model.pkl"
-    svm_model_with_common_feature = file_root_path + "svm_model.pkl"
+    rf_model_path = file_root_path + "rf_model.pkl"
+    gbdt_model_path = file_root_path + "gbdt_model.pkl"
+    svm_model_path = file_root_path + "svm_model.pkl"
+    boosting_model_path = file_root_path + "boosting_model.pkl"
 
-    classifier_dic = {rf_name: rf_model_with_common_feature,
-                      gbdt_name: gbdt_model_with_common_feature,
-                      svm_name: svm_model_with_common_feature}
+    classifier_path_dic = {rf_name: rf_model_path,
+                           gbdt_name: gbdt_model_path,
+                           svm_name: svm_model_path}
+
+    classifier_pram_dic = {rf_name: rf_prams,
+                           gbdt_name: gbdt_prams,
+                           svm_name: svm_prams}
+
+    classifier_init_dic = {rf_name: RandomForestClassifier(classifier_pram_dic[rf_name]),
+                           gbdt_name: GradientBoostingClassifier(classifier_pram_dic[gbdt_name]),
+                           svm_name: LinearSVC(classifier_pram_dic[svm_name])}
 
     classifier_weight_dic = {rf_name: 1,
                              gbdt_name: 1,
                              svm_name: 1}
 
-    boosting_model_with_common_feature = file_root_path + "rf_model.pkl"
+    boosting_weight_dic = file_root_path + "boosting_weight_dic.pkl"
 
-    boosting_weight_dic_with_common_feature = file_root_path + "boosting_weight_dic.pkl"
+    # 降维方式
+    chi_square = "chi_square"
+    information_gain = "information_gain"
+    cur_selection_function = chi_square
 
     def __init__(self):
         pass

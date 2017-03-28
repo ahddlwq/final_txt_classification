@@ -15,13 +15,19 @@ class Util(object):
         for line in cate_file:
             cate_dic[line.strip()] = cate_id
             cate_id += 1
-        cPickle.dump(cate_dic, open(FilePathConfig.category_pkl_path, 'wb'))
+        self.save_object_into_pkl(object, FilePathConfig.category_pkl_path)
 
-    def save_collection_into_file(self, collection_file_path, contents):
+    def save_object_into_pkl(self, object, pkl_path):
+        cPickle.dump(object, open(pkl_path, 'wb'))
+
+    def save_collection_strs_into_file(self, collection_file_path, contents):
         collection_file = codecs.open(collection_file_path, 'wb', FilePathConfig.file_encodeing, 'ignore')
         lined_contents = '\n'.join(contents)
         collection_file.write(lined_contents)
         collection_file.close()
+
+    def load_object_from_pkl(self, pkl_path):
+        return cPickle.load(open(pkl_path, 'r'))
 
 
 if __name__ == '__main__':
