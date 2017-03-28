@@ -18,8 +18,6 @@ from misc.util import Util
 class MainClassifier(object):
     def __init__(self):
         # 主要都是直接从配置文件里读取
-        # 通用工具
-        self.util = Util()
         # 加载类别与id的映射字典
         self.category_dic = self.load_category_dic_from_pkl()
         # 加载词典
@@ -116,10 +114,10 @@ class MainClassifier(object):
             if len(terms) > self.longest_length_doc:
                 self.longest_length_doc = len(terms)
 
-            line_result = str(self.category_dic[document.label]) + '\t'
+            line_result = str(self.category_dic[document.label]) + FilePathConfig.sparse_content_split_label
             for term in terms:
-                line_result += (str(term.term_id) + ":" + str(term.weight))
-                line_result += " "
+                line_result += (str(term.term_id) + FilePathConfig.sparse_content_id_weight_label + str(term.weight))
+                line_result += FilePathConfig.sparse_content_id_weight_list_label
             self.cache_file.write(line_result.strip() + '\n')
         except:
             print "Error write cache error when add document"
@@ -225,17 +223,17 @@ class MainClassifier(object):
         if lexicon_path is None:
             return Lexicon()
         else:
-            return self.util.load_object_from_pkl(lexicon_path)
+            return Util.load_object_from_pkl(lexicon_path)
 
     # 从文件加载字典对象
     def load_lexicon_from_pkl(self):
-        return self.util.load_object_from_pkl(FilePathConfig.lexicon_pkl_path)
+        return Util.load_object_from_pkl(FilePathConfig.lexicon_pkl_path)
 
 
     # 加载类别与编号字典
     # 返回内容类似为{"时政":1,"军事":2,……}
     def load_category_dic_from_pkl(self):
-        return self.util.load_object_from_pkl(FilePathConfig.category_pkl_path)
+        return Util.load_object_from_pkl(FilePathConfig.category_pkl_path)
 
     def save_lexicon_into_pkl(self):
         cPickle.dump(self.lexicon, open(FilePathConfig.lexicon_pkl_path, 'wb'))

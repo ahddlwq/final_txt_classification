@@ -28,15 +28,16 @@ class ChiSquare(AbstractSelectFunction):
             for line in data:
                 # 清空列表
                 del terms[:]
-                splited_line = line.strip().split("\t")
+                splited_line = line.strip().split(FilePathConfig.sparse_content_split_label)
                 if not len(splited_line) == 2:
                     print "Error cache error"
                 label_id = int(splited_line[0])
                 # 末尾会有回车符
-                id_weight_pairs = splited_line[1].strip().split(",")
+                id_weight_pairs = splited_line[1].strip().split(FilePathConfig.sparse_content_id_weight_list_label)
                 # print len(id_weight_pairs)
                 for id_weight_pair in id_weight_pairs:
-                    term = Term(int(id_weight_pair.split(":")[0]), float(id_weight_pair.split(":")[1]))
+                    term_info = id_weight_pair.split(FilePathConfig.sparse_content_id_weight_label)
+                    term = Term(int(term_info[0]), float(term_info[1]))
                     terms.append(term)
 
                 class_size[label_id] += 1
@@ -47,7 +48,7 @@ class ChiSquare(AbstractSelectFunction):
                     print "sanned", num_docs_read
                 num_docs_read += 1
         except Exception, e:
-            print 'e.message:\t', e.message
+            print e.message
 
         data.close()
 

@@ -21,6 +21,10 @@ class FilePathConfig(object):
     file_encodeing = "UTF-8"
     is_need_print_detail = False
 
+    sparse_content_split_label = "\t"
+    sparse_content_id_weight_label = ":"
+    sparse_content_id_weight_list_label = " "
+
     def __init__(self):
         pass
 
