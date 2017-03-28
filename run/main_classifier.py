@@ -2,14 +2,13 @@
 import cPickle
 import codecs
 
-from feature_extractor.feature_selection_functions.speech_filter import SpeechFilter
-
 from config.config import FilePathConfig, ClassifierConfig
 from evaluation.test_result import TestResult
 from feature_extractor.entity.document import Document
 from feature_extractor.entity.document_vector import DocumentVector
 from feature_extractor.entity.lexicon import Lexicon
 from feature_extractor.entity.termweight import TfOnlyTermWeighter, TfIdfWighter
+from feature_extractor.feature_filter.speech_filter import SpeechFilter
 from feature_extractor.feature_filter.stop_word_filter import StopWordFilter
 from feature_extractor.feature_selection_functions.chi_square import ChiSquare
 from feature_extractor.feature_selection_functions.informantion_gain import InformationGain
@@ -19,6 +18,8 @@ from misc.util import Util
 class MainClassifier(object):
     def __init__(self):
         # 主要都是直接从配置文件里读取
+        # 通用工具
+        self.util = Util()
         # 加载类别与id的映射字典
         self.category_dic = self.load_category_dic_from_pkl()
         # 加载词典
@@ -39,8 +40,7 @@ class MainClassifier(object):
         self.longest_length_doc = 0
         # 文章的总数量
         self.num_doc = 0
-        # 通用工具
-        self.util = Util()
+
 
     # -----------------------------------------------------------------------------------------------------------------
     # 训练前的准备，构造词典，特征降维，准备训练数据
@@ -180,14 +180,16 @@ class MainClassifier(object):
         test_result.evaluation(predicted_class, raw_class_label)
 
     def train(self, feature_mat, label_vec):
-        self.abstract_classifier.train(feature_mat, label_vec)
+        print "train"
+        # self.abstract_classifier.train(feature_mat, label_vec)
         pass
 
     def test(self, test_corpus_path):
-        label_vec = self.get_test_label(test_corpus_path)
-        predicted_class = self.classify_documents_top_k_from_file(test_corpus_path)
-
-        self.print_classify_result(predicted_class, label_vec)
+        print "test"
+        # label_vec = self.get_test_label(test_corpus_path)
+        # predicted_class = self.classify_documents_top_k_from_file(test_corpus_path)
+        #
+        # self.print_classify_result(predicted_class, label_vec)
 
     # -----------------------------------------------------------------------------------------------------------------
     # 辅助函数
@@ -270,13 +272,13 @@ if __name__ == '__main__':
 
     # ----------------------------------------------------------------------------------------------------
     # 对外来的数据进行分类
-    mainClassifier = MainClassifier()
-    mainClassifier.load_model()
-    # 需要分类的数据
-    raw_document = "{json}"
-    # 只返回单分类
-    classify_result = mainClassifier.classify_document(raw_document)
-    # 需要返回的类别数量
-    k = 3
-    # 返回多个分类和其概率
-    classify_results = mainClassifier.classify_document_top_k(raw_document, k)
+    # mainClassifier = MainClassifier()
+    # mainClassifier.load_model()
+    # # 需要分类的数据
+    # raw_document = "{json}"
+    # # 只返回单分类
+    # classify_result = mainClassifier.classify_document(raw_document)
+    # # 需要返回的类别数量
+    # k = 3
+    # # 返回多个分类和其概率
+    # classify_results = mainClassifier.classify_document_top_k(raw_document, k)

@@ -5,7 +5,7 @@ class AbstractFilter(object):
         pass
 
     def filter(self, content_words):
-        pass
+        return content_words
 
     def __cmp__(self, other):
         return self.priority < other.priority

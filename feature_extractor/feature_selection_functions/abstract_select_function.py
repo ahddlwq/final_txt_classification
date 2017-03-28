@@ -1,4 +1,4 @@
-class SelectFunction(object):
+class AbstractSelectFunction(object):
     def __init__(self):
         pass
 

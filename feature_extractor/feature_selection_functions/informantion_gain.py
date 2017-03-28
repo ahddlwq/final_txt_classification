@@ -1,4 +1,7 @@
-class InformationGain(object):
+from feature_extractor.feature_selection_functions.abstract_select_function import AbstractSelectFunction
+
+
+class InformationGain(AbstractSelectFunction):
     def __init__(self):
         pass
 

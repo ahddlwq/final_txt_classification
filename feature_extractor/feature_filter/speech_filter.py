@@ -7,5 +7,5 @@ class SpeechFilter(AbstractFilter):
     def __init__(self):
         pass
 
-    def filter(self):
-        pass
+    def filter(self, raw_content):
+        return raw_content

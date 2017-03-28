@@ -4,12 +4,12 @@ from Queue import PriorityQueue
 
 import numpy as np
 
+from abstract_select_function import AbstractSelectFunction
 from config.config import FilePathConfig, ClassifierConfig
 from feature_extractor.entity.term import Term
-from select_function import SelectFunction
 
 
-class ChiSquare(SelectFunction):
+class ChiSquare(AbstractSelectFunction):
     def __init__(self):
         pass
 
