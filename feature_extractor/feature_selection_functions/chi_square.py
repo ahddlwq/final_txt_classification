@@ -36,8 +36,8 @@ class ChiSquare(AbstractSelectFunction):
                 id_weight_pairs = splited_line[1].strip().split(FilePathConfig.sparse_content_id_weight_list_label)
                 # print len(id_weight_pairs)
                 for id_weight_pair in id_weight_pairs:
-                    term_info = id_weight_pair.split(FilePathConfig.sparse_content_id_weight_label)
-                    term = Term(int(term_info[0]), float(term_info[1]))
+                    term_id_tf = id_weight_pair.split(FilePathConfig.sparse_content_id_weight_label)
+                    term = Term(int(term_id_tf[0]), float(term_id_tf[1]))
                     terms.append(term)
 
                 class_size[label_id] += 1

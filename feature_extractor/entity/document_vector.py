@@ -8,7 +8,7 @@ class DocumentVector(object):
     def __init__(self, term_weighter):
         self.term_weighter = term_weighter
 
-    def build(self, words, normalized=True):
+    def build(self, words, normalized=False):
         terms_dic = dict()
         for word in words:
             term = terms_dic.get(word.word_id, None)

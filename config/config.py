@@ -41,13 +41,13 @@ class ClassifierConfig(object):
     rf_name = "rf"
     gbdt_name = "gbdt"
     svm_name = "svm"
-    rf_prams = {}
+    rf_prams = {"n_estimators": 300}
     gbdt_prams = {}
     svm_prams = {}
 
     # 当前系统是使用boosting，还是单模型进行训练和测试
     is_single_model = True
-    cur_single_model = svm_name
+    cur_single_model = rf_name
 
     # 现在需要进行boosting的分类器集合
     boosting_using_classifiers = [rf_name, gbdt_name, svm_name]
@@ -65,9 +65,9 @@ class ClassifierConfig(object):
                            gbdt_name: gbdt_prams,
                            svm_name: svm_prams}
 
-    classifier_init_dic = {rf_name: RandomForestClassifier(classifier_pram_dic[rf_name]),
-                           gbdt_name: GradientBoostingClassifier(classifier_pram_dic[gbdt_name]),
-                           svm_name: LinearSVC(classifier_pram_dic[svm_name])}
+    classifier_init_dic = {rf_name: RandomForestClassifier(**classifier_pram_dic[rf_name]),
+                           gbdt_name: GradientBoostingClassifier(**classifier_pram_dic[gbdt_name]),
+                           svm_name: LinearSVC(**classifier_pram_dic[svm_name])}
 
     classifier_weight_dic = {rf_name: 1,
                              gbdt_name: 1,

@@ -26,12 +26,13 @@ class AbstractClassifier(object):
         return classify_results[:top_k]
 
     def save_model(self):
-        cPickle.dump(self.model, open(self.model_path, 'r'))
+        cPickle.dump(self.model, open(self.model_path, 'w'))
 
     def load_model(self):
         self.model = cPickle.load(self.model_path)
 
     def train(self, feature_mat, label_vec):
         self.model = ClassifierConfig.classifier_init_dic[ClassifierConfig.cur_single_model]
+        print "training"
         self.model.fit(feature_mat, label_vec)
         self.save_model()

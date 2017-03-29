@@ -15,7 +15,7 @@ class TfIdfWighter(TermWeight):
     def cal_weight(self, word_id, tf):
         num_docs = self.lexicon.num_docs
         word = self.lexicon.get_word(word_id)
-        return math.log10(tf + 1) * (math.log10(float(num_docs) / word.df + 1))
+        return math.log10(float(tf) + 1) * (math.log10(float(num_docs) / word.df + 1))
 
 
 class TfOnlyTermWeighter(TermWeight):
