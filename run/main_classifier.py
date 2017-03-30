@@ -2,7 +2,9 @@
 import cPickle
 import codecs
 import os
+import sys
 
+sys.path.append("")
 from sklearn import metrics
 from sklearn.datasets import load_svmlight_file
 
@@ -47,7 +49,7 @@ class MainClassifier(object):
 
     # -----------------------------------------------------------------------------------------------------------------
     # 训练前的准备，构造词典，特征降维，准备训练数据
-    def construct_lexicon_and_save_sparse_feature_mat(self, train_corpus_path):
+    def construct_lexicon(self, train_corpus_path):
         # 从原始语料中转换成稀疏矩阵，保存在cache中，同时会在lexicon里保存下所有的id_dic和name_dic
         self.add_documents_from_file(train_corpus_path)
         # 进行特征降维,返回一个保存了所有特征id的优先队列
@@ -84,73 +86,6 @@ class MainClassifier(object):
             fid_dic[feature_to_sort[i].term_id] = i
         return fid_dic
 
-    # 根据选取后的特征和原来的cache保存的稀疏矩阵构造出带权重的特征稀疏矩阵
-    # def convert_and_save_sparse_feature_mat(self, fid_dic):
-    #
-    #     cache_file_path = FilePathConfig.cache_file_path
-    #     sparse_feature_math_path = FilePathConfig.train_feature_mat_path
-    #
-    #     data = codecs.open(cache_file_path, 'rb', FilePathConfig.file_encodeing, 'ignore')
-    #     sparse_feature_mat = codecs.open(sparse_feature_math_path, 'wb', FilePathConfig.file_encodeing, 'ignore')
-    #
-    #     new_terms = []
-    #     tf_idf_weight = TfIdfWighter(self.lexicon)
-    #     index = 0
-    #     for line in data:
-    #         del new_terms[:]
-    #
-    #         raw_length = 0
-    #         filted_length = 0
-    #
-    #         # 取过滤后的来归一化
-    #         normalize = 0.0
-    #         splited_line = line.strip().split(FilePathConfig.sparse_content_split_label)
-    #         label_id = splited_line[0]
-    #         sparse_feature_mat.write(label_id + FilePathConfig.sparse_content_id_weight_list_label)
-    #         # 末尾会有回车符
-    #         id_weight_pairs = splited_line[1].strip().split(FilePathConfig.sparse_content_id_weight_list_label)
-    #
-    #         for id_weight_pair in id_weight_pairs:
-    #             term_id_tf = id_weight_pair.split(FilePathConfig.sparse_content_id_weight_label)
-    #             # 这里有一个key的类型问题，因为在一开始保存这个dic的时候，key的类型是int
-    #             term_id = int(term_id_tf[0])
-    #             term_tf = int(term_id_tf[1])
-    #             if term_id in fid_dic:
-    #                 filted_length += term_tf
-    #             raw_length += term_tf
-    #
-    #         for id_weight_pair in id_weight_pairs:
-    #             term_id_tf = id_weight_pair.split(FilePathConfig.sparse_content_id_weight_label)
-    #             # 这里有一个key的类型问题，因为在一开始保存这个dic的时候，key的类型是int
-    #             term_id = int(term_id_tf[0])
-    #             # 使用原长度来算tf
-    #             term_tf = float(term_id_tf[1])/raw_length
-    #
-    #             if term_id not in fid_dic:
-    #                 continue
-    #
-    #             term_new_id = fid_dic[term_id]
-    #
-    #             term_weight = tf_idf_weight.cal_weight(term_new_id, term_tf)
-    #             if index == 0:
-    #                 index += 1
-    #                 print term_new_id, ":", term_tf, term_weight
-    #             new_term = Term(term_new_id, term_weight)
-    #             new_terms.append(new_term)
-    #             normalize += (term_weight * term_weight)
-    #
-    #         # 按照id大小排序
-    #         new_terms.sort(cmp=lambda x, y: cmp(x.term_id, y.term_id))
-    #         for new_term in new_terms:
-    #             new_term.weight /= normalize
-    #             sparse_feature_mat.write(
-    #                 str(new_term.term_id) + FilePathConfig.sparse_content_id_weight_label + str(new_term.weight)
-    #                 + FilePathConfig.sparse_content_id_weight_list_label)
-    #         sparse_feature_mat.write("\n")
-    #
-    #     data.close()
-    #     sparse_feature_mat.close()
-
     # 添加单篇文档用于构造词典
     def add_document(self, raw_document):
         document = Document(raw_document)
@@ -176,10 +111,10 @@ class MainClassifier(object):
             if len(terms) > self.longest_length_doc:
                 self.longest_length_doc = len(terms)
 
-            line_result = str(self.category_dic[document.label]) + FilePathConfig.sparse_content_split_label
+            line_result = str(self.category_dic[document.label]) + FilePathConfig.space
             for term in terms:
-                line_result += (str(term.term_id) + FilePathConfig.sparse_content_id_weight_label + str(term.weight))
-                line_result += FilePathConfig.sparse_content_id_weight_list_label
+                line_result += (str(term.term_id) + FilePathConfig.colon + str(term.weight))
+                line_result += FilePathConfig.space
             self.cache_file.write(line_result.strip() + '\n')
         except:
             print "Error write cache error when add document"
@@ -341,8 +276,8 @@ if __name__ == '__main__':
     # 需要外面传进来的参数只有训练集的位置和验证集的位置
     mainClassifier = MainClassifier()
     print mainClassifier.lexicon.locked
-    # 根据原始语料进行语料预处理（切词、过滤、特征降维），权重计算，得到最终的训练集特征稀疏矩阵
-    mainClassifier.construct_lexicon_and_save_sparse_feature_mat(FilePathConfig.train_corpus_path)
+    # 根据原始语料进行语料预处理（切词、过滤、特征降维），权重计算
+    mainClassifier.construct_lexicon(FilePathConfig.train_corpus_path)
     # 训练
     mainClassifier.train(FilePathConfig.train_corpus_path)
     # 测试

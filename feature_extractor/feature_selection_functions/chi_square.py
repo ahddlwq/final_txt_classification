@@ -28,15 +28,15 @@ class ChiSquare(AbstractSelectFunction):
             for line in data:
                 # 清空列表
                 del terms[:]
-                splited_line = line.strip().split(FilePathConfig.sparse_content_split_label)
+                splited_line = line.strip().split(FilePathConfig.space)
                 if not len(splited_line) == 2:
                     print "Error cache error"
                 label_id = int(splited_line[0])
                 # 末尾会有回车符
-                id_weight_pairs = splited_line[1].strip().split(FilePathConfig.sparse_content_id_weight_list_label)
+                id_weight_pairs = splited_line[1].strip().split(FilePathConfig.space)
                 # print len(id_weight_pairs)
                 for id_weight_pair in id_weight_pairs:
-                    term_id_tf = id_weight_pair.split(FilePathConfig.sparse_content_id_weight_label)
+                    term_id_tf = id_weight_pair.split(FilePathConfig.colon)
                     term = Term(int(term_id_tf[0]), float(term_id_tf[1]))
                     terms.append(term)
 

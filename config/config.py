@@ -7,24 +7,25 @@ class FilePathConfig(object):
     file_root_path = "../file/"
     category_pkl_path = file_root_path + "category.pkl"
     category_file_path = file_root_path + "category.txt"
+    total_corpus_path = file_root_path + "train.json"
     train_corpus_path = file_root_path + "train.json"
-    test_corpus_path = file_root_path + "train.json"
-    raw_lexicon_path = file_root_path + "raw_lexicon.txt"
-    selected_lexicon_path = file_root_path + "selected_lexicon.txt"
-    selected_features_path = file_root_path + "selected_features.txt"
+    test_corpus_path = file_root_path + "test.json"
     cache_file_path = file_root_path + "cache.txt"
-
     train_feature_mat_path = file_root_path + "train_sparse_feature_mat.txt"
     test_feature_mat_path = file_root_path + "test_sparse_feature_mat.txt"
-
     lexicon_pkl_path = file_root_path + "lexicon.pkl"
 
     file_encodeing = "UTF-8"
     is_need_print_detail = False
 
-    sparse_content_split_label = "\t"
-    sparse_content_id_weight_label = ":"
-    sparse_content_id_weight_list_label = " "
+    # 用于分割文件中的内容
+    tab = "\t"
+    colon = ":"
+    space = " "
+
+    raw_lexicon_path = file_root_path + "raw_lexicon.txt"
+    selected_lexicon_path = file_root_path + "selected_lexicon.txt"
+    selected_features_path = file_root_path + "selected_features.txt"
 
     def __init__(self):
         pass
