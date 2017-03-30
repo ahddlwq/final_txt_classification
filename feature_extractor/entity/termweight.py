@@ -7,6 +7,8 @@ class TermWeight(object):
         self.lexicon = lexicon
         pass
 
+    def cal_weight(self, word_id, tf):
+        pass
 
 class TfIdfWighter(TermWeight):
     def __init__(self, lexicon):

@@ -8,7 +8,7 @@ class DocumentVector(object):
     def __init__(self, term_weighter):
         self.term_weighter = term_weighter
 
-    def build(self, words, normalized=False):
+    def build(self, words, normalized, doc_len):
         terms_dic = dict()
         for word in words:
             term = terms_dic.get(word.word_id, None)
@@ -21,6 +21,8 @@ class DocumentVector(object):
         i = 0
         normalizer = 0
         for term in terms_dic.values():
+            if normalized:
+                term.weight /= float(doc_len)
             term.weight = self.term_weighter.cal_weight(term.term_id, term.weight)
             vec.append(term)
             normalizer += term.weight * term.weight

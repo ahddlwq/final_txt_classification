@@ -14,7 +14,8 @@ class FilePathConfig(object):
     selected_features_path = file_root_path + "selected_features.txt"
     cache_file_path = file_root_path + "cache.txt"
 
-    sparse_feature_mat_path = file_root_path + "sparse_feature_mat.txt"
+    train_feature_mat_path = file_root_path + "train_sparse_feature_mat.txt"
+    test_feature_mat_path = file_root_path + "test_sparse_feature_mat.txt"
 
     lexicon_pkl_path = file_root_path + "lexicon.pkl"
 

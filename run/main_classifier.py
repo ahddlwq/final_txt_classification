@@ -1,7 +1,9 @@
 # coding=UTF-8
 import cPickle
 import codecs
+import os
 
+from sklearn import metrics
 from sklearn.datasets import load_svmlight_file
 
 from config.config import FilePathConfig, ClassifierConfig
@@ -9,7 +11,6 @@ from evaluation.test_result import TestResult
 from feature_extractor.entity.document import Document
 from feature_extractor.entity.document_vector import DocumentVector
 from feature_extractor.entity.lexicon import Lexicon
-from feature_extractor.entity.term import Term
 from feature_extractor.entity.termweight import TfOnlyTermWeighter, TfIdfWighter
 from feature_extractor.feature_filter.speech_filter import SpeechFilter
 from feature_extractor.feature_filter.stop_word_filter import StopWordFilter
@@ -25,7 +26,7 @@ class MainClassifier(object):
         # 加载类别与id的映射字典
         self.category_dic = self.load_category_dic_from_pkl()
         # 加载词典
-        self.lexicon = self.load_lexicon(FilePathConfig.lexicon_pkl_path)
+        self.lexicon = self.load_lexicon()
         # 加载特征降维方法
         self.select_function = self.get_selection_funtion()
         # 将训练转换成文档向量的工具
@@ -57,12 +58,12 @@ class MainClassifier(object):
 
         # 根据选择后的特征，重新调整词典id的映射关系
         self.lexicon = self.lexicon.map(fid_dic)
-        # 锁定词典,避免再次修改
+        # 当训练好后，则锁定词典,避免再次修改
         self.lexicon.locked = True
         # 保存下词典映射文件
         self.save_lexicon_into_pkl()
         # 根据新的映射关系，将cache文件转化为权重的稀疏矩阵
-        self.convert_and_save_sparse_feature_mat(fid_dic)
+        # self.convert_and_save_sparse_feature_mat(fid_dic)
 
 
     def output_selected_features_and_get_fid_dic(self, selected_features_queue):
@@ -73,7 +74,8 @@ class MainClassifier(object):
         while selected_features_queue.qsize() > 0:
             term = selected_features_queue.get()
             feature_to_sort.append(term)
-            content = self.lexicon.get_word(term.term_id).name + " " + str(term.weight)
+            word = self.lexicon.get_word(term.term_id)
+            content = word.name + " " + word.df + " " + str(term.weight)
             selected_features_file.write(content + "\n")
 
         selected_features_file.close()
@@ -83,73 +85,71 @@ class MainClassifier(object):
         return fid_dic
 
     # 根据选取后的特征和原来的cache保存的稀疏矩阵构造出带权重的特征稀疏矩阵
-    def convert_and_save_sparse_feature_mat(self, fid_dic):
-
-        cache_file_path = FilePathConfig.cache_file_path
-        sparse_feature_math_path = FilePathConfig.sparse_feature_mat_path
-
-        data = codecs.open(cache_file_path, 'rb', FilePathConfig.file_encodeing, 'ignore')
-        sparse_feature_mat = codecs.open(sparse_feature_math_path, 'wb', FilePathConfig.file_encodeing, 'ignore')
-
-        new_terms = []
-        tf_idf_weight = TfIdfWighter(self.lexicon)
-
-        for line in data:
-            del new_terms[:]
-
-            raw_length = 0
-            filted_length = 0
-
-            # 取过滤后的来归一化
-            normalize = 0.0
-            splited_line = line.strip().split(FilePathConfig.sparse_content_split_label)
-            label_id = splited_line[0]
-            sparse_feature_mat.write(label_id + FilePathConfig.sparse_content_id_weight_list_label)
-            # 末尾会有回车符
-            id_weight_pairs = splited_line[1].strip().split(FilePathConfig.sparse_content_id_weight_list_label)
-
-            for id_weight_pair in id_weight_pairs:
-                term_id_tf = id_weight_pair.split(FilePathConfig.sparse_content_id_weight_label)
-                # 这里有一个key的类型问题，因为在一开始保存这个dic的时候，key的类型是int
-                term_id = int(term_id_tf[0])
-                term_tf = int(term_id_tf[1])
-                if term_id in fid_dic:
-                    filted_length += term_tf
-                raw_length += term_tf
-
-            for id_weight_pair in id_weight_pairs:
-                term_id_tf = id_weight_pair.split(FilePathConfig.sparse_content_id_weight_label)
-                # 这里有一个key的类型问题，因为在一开始保存这个dic的时候，key的类型是int
-                term_id = int(term_id_tf[0])
-                # 使用原长度来算tf
-                term_tf = float(term_id_tf[1]) / raw_length
-
-                if term_id not in fid_dic:
-                    continue
-
-                term_new_id = fid_dic[term_id]
-                term_weight = tf_idf_weight.cal_weight(term_new_id, term_tf)
-                new_term = Term(term_new_id, term_weight)
-                new_terms.append(new_term)
-                normalize += term_weight * term_weight
-
-            # 按照id大小排序
-            new_terms.sort(cmp=lambda x, y: cmp(x.term_id, y.term_id))
-            for new_term in new_terms:
-                new_term.weight /= normalize
-                sparse_feature_mat.write(
-                    str(new_term.term_id) + FilePathConfig.sparse_content_id_weight_label + str(new_term.weight)
-                    + FilePathConfig.sparse_content_id_weight_list_label)
-            sparse_feature_mat.write("\n")
-
-        data.close()
-        sparse_feature_mat.close()
-
-
-    # 从稀疏矩阵中获取特征向量和标签
-    def get_train_data(self):
-        data = load_svmlight_file(FilePathConfig.sparse_feature_mat_path)
-        return data[0], data[1]
+    # def convert_and_save_sparse_feature_mat(self, fid_dic):
+    #
+    #     cache_file_path = FilePathConfig.cache_file_path
+    #     sparse_feature_math_path = FilePathConfig.train_feature_mat_path
+    #
+    #     data = codecs.open(cache_file_path, 'rb', FilePathConfig.file_encodeing, 'ignore')
+    #     sparse_feature_mat = codecs.open(sparse_feature_math_path, 'wb', FilePathConfig.file_encodeing, 'ignore')
+    #
+    #     new_terms = []
+    #     tf_idf_weight = TfIdfWighter(self.lexicon)
+    #     index = 0
+    #     for line in data:
+    #         del new_terms[:]
+    #
+    #         raw_length = 0
+    #         filted_length = 0
+    #
+    #         # 取过滤后的来归一化
+    #         normalize = 0.0
+    #         splited_line = line.strip().split(FilePathConfig.sparse_content_split_label)
+    #         label_id = splited_line[0]
+    #         sparse_feature_mat.write(label_id + FilePathConfig.sparse_content_id_weight_list_label)
+    #         # 末尾会有回车符
+    #         id_weight_pairs = splited_line[1].strip().split(FilePathConfig.sparse_content_id_weight_list_label)
+    #
+    #         for id_weight_pair in id_weight_pairs:
+    #             term_id_tf = id_weight_pair.split(FilePathConfig.sparse_content_id_weight_label)
+    #             # 这里有一个key的类型问题，因为在一开始保存这个dic的时候，key的类型是int
+    #             term_id = int(term_id_tf[0])
+    #             term_tf = int(term_id_tf[1])
+    #             if term_id in fid_dic:
+    #                 filted_length += term_tf
+    #             raw_length += term_tf
+    #
+    #         for id_weight_pair in id_weight_pairs:
+    #             term_id_tf = id_weight_pair.split(FilePathConfig.sparse_content_id_weight_label)
+    #             # 这里有一个key的类型问题，因为在一开始保存这个dic的时候，key的类型是int
+    #             term_id = int(term_id_tf[0])
+    #             # 使用原长度来算tf
+    #             term_tf = float(term_id_tf[1])/raw_length
+    #
+    #             if term_id not in fid_dic:
+    #                 continue
+    #
+    #             term_new_id = fid_dic[term_id]
+    #
+    #             term_weight = tf_idf_weight.cal_weight(term_new_id, term_tf)
+    #             if index == 0:
+    #                 index += 1
+    #                 print term_new_id, ":", term_tf, term_weight
+    #             new_term = Term(term_new_id, term_weight)
+    #             new_terms.append(new_term)
+    #             normalize += (term_weight * term_weight)
+    #
+    #         # 按照id大小排序
+    #         new_terms.sort(cmp=lambda x, y: cmp(x.term_id, y.term_id))
+    #         for new_term in new_terms:
+    #             new_term.weight /= normalize
+    #             sparse_feature_mat.write(
+    #                 str(new_term.term_id) + FilePathConfig.sparse_content_id_weight_label + str(new_term.weight)
+    #                 + FilePathConfig.sparse_content_id_weight_list_label)
+    #         sparse_feature_mat.write("\n")
+    #
+    #     data.close()
+    #     sparse_feature_mat.close()
 
     # 添加单篇文档用于构造词典
     def add_document(self, raw_document):
@@ -171,7 +171,7 @@ class MainClassifier(object):
         content_words = document.get_content_words_feature()
         self.lexicon.add_document(content_words)
         words = self.lexicon.convert_document(content_words)
-        terms = self.training_vector_builder.build(words)
+        terms = self.training_vector_builder.build(words, False, 0)
         try:
             if len(terms) > self.longest_length_doc:
                 self.longest_length_doc = len(terms)
@@ -208,10 +208,11 @@ class MainClassifier(object):
 
     # 分类多篇文档，循环调用分类单篇文档，返回多个结果
     def classify_documents_top_k(self, raw_documents, k):
-        classify_results = []
-        for raw_document in raw_documents:
-            classify_results.append(self.classify_document_top_k(raw_document, k))
-        return classify_results
+        # classify_results = []
+        # for raw_document in raw_documents:
+        #     classify_results.append(self.classify_document_top_k(raw_document, k))
+        # return classify_results
+        return self.abstract_classifier.classify_top_k(raw_documents, 1)
 
     # 从文件分类多篇文档，循环调用分类单篇文档，返回多个结果
     def classify_documents_top_k_from_file(self, raw_documents_file_path, k):
@@ -226,7 +227,7 @@ class MainClassifier(object):
 
     # 分类多篇文档，循环调用分类单篇文档,只返回一个结果
     def classify_documents(self, raw_documents):
-        return self.classify_document_top_k(raw_documents, 1)
+        return self.classify_documents_top_k(raw_documents, 1)
 
     # 从文件分类多篇文档，循环调用分类单篇文档,只返回一个结果
     def classify_documents_from_file(self, raw_documents_file_path):
@@ -236,46 +237,57 @@ class MainClassifier(object):
     # 训练和评测相关
     # 打印分类结果与评测结果
     def print_classify_result(self, predicted_class, raw_class_label):
+        m_precision = metrics.precision_score(raw_class_label, predicted_class, average="micro")
+        m_recall = metrics.recall_score(raw_class_label, predicted_class, average="micro")
+        print m_precision, m_recall
+        print metrics.classification_report(raw_class_label, predicted_class)
         test_result = TestResult()
         test_result.evaluation(predicted_class, raw_class_label)
 
-    def train(self, feature_mat, label_vec):
+    def train(self, train_corpus_path):
         print "train"
         self.load_model()
-        print type(feature_mat), type(label_vec)
-        self.abstract_classifier.train(feature_mat, label_vec)
+        train_feature_mat, label_vec = self.corpus_to_feature_vec(train_corpus_path,
+                                                                  FilePathConfig.train_feature_mat_path)
+        self.abstract_classifier.train(train_feature_mat, label_vec)
         pass
 
     def test(self, test_corpus_path):
         print "test"
-        label_vec = self.get_test_label(test_corpus_path)
-        predicted_class = self.classify_documents_from_file(test_corpus_path)
+        self.load_model()
+        test_sparse_mat, label_vec = self.corpus_to_feature_vec(test_corpus_path, FilePathConfig.test_feature_mat_path)
+        predicted_class = self.classify_documents(test_sparse_mat)
+        print predicted_class
+        print label_vec
         self.print_classify_result(predicted_class, label_vec)
 
-    # -----------------------------------------------------------------------------------------------------------------
-    # 辅助函数
-    def get_test_label(self, test_corpus_path):
-        labels = []
-        return labels
+    def get_libsvm_data(self, path):
+        data = load_svmlight_file(path)
+        return data[0], data[1]
 
     # 将传进来的批量json转换为可用于分类的特征向量矩阵,或者特征向量加原来的分类标签
-    def json_to_feature_vec(self, jsons, has_label=False):
-        feature_mat = []
-        label_vec = []
-        # 如果传进来的只是单json，则转换一下
-        if type(jsons) is str:
-            jsons = [jsons]
-
+    def corpus_to_feature_vec(self, corpus_path, result_path):
+        jsons = codecs.open(corpus_path, 'rb', FilePathConfig.file_encodeing, 'ignore')
+        test_sparse_mat = codecs.open(result_path, 'wb', FilePathConfig.file_encodeing, 'ignore')
         for json in jsons:
             document = Document(json)
-            feature_mat.append(self.lexicon.convert_document(document.get_content_words_feature()))
-            if has_label:
-                label_vec.append(document.label_id)
+            label_id = self.category_dic[document.label]
+            content_words = document.get_content_words_feature()
+            doc_len = len(content_words)
 
-        if has_label:
-            return feature_mat, label_vec
-        else:
-            return feature_mat
+            words = self.lexicon.convert_document(content_words)
+            # terms = self.test_vector_builder.build(words, normalized=True)
+            terms = self.test_vector_builder.build(words, True, doc_len)
+
+            test_sparse_mat.write(str(label_id))
+            terms.sort(cmp=lambda x, y: cmp(x.term_id, y.term_id))
+            for term in terms:
+                test_sparse_mat.write(" " + str(term.term_id) + ":" + str(term.weight))
+            test_sparse_mat.write("\n")
+
+        jsons.close()
+        test_sparse_mat.close()
+        return self.get_libsvm_data(result_path)
 
     def load_model(self):
         if ClassifierConfig.is_single_model:
@@ -286,9 +298,13 @@ class MainClassifier(object):
 
     def load_lexicon(self, lexicon_path=None):
         if lexicon_path is None:
-            return Lexicon()
+            if os.path.isfile(FilePathConfig.lexicon_pkl_path):
+                print "load lexicon"
+                return Util.load_object_from_pkl(FilePathConfig.lexicon_pkl_path)
+            else:
+                return Lexicon()
         else:
-            return Util.load_object_from_pkl(lexicon_path)
+            return Util.load_object_from_pkl(FilePathConfig.lexicon_pkl_path)
 
     # 从文件加载字典对象
     def load_lexicon_from_pkl(self):
@@ -324,12 +340,11 @@ if __name__ == '__main__':
     # 训练和评测阶段，这里把所有可能需要自定义的参数全部都移到配置文件里了，如果需要也可以换成传参调用的形式
     # 需要外面传进来的参数只有训练集的位置和验证集的位置
     mainClassifier = MainClassifier()
+    print mainClassifier.lexicon.locked
     # 根据原始语料进行语料预处理（切词、过滤、特征降维），权重计算，得到最终的训练集特征稀疏矩阵
-    # mainClassifier.construct_lexicon_and_save_sparse_feature_mat(FilePathConfig.train_corpus_path)
-    # 从处理好的训练语料产生的数据里分离出特征和标签
-    train_sparse_feature_mat, train_label_vec = mainClassifier.get_train_data()
+    mainClassifier.construct_lexicon_and_save_sparse_feature_mat(FilePathConfig.train_corpus_path)
     # 训练
-    mainClassifier.train(train_sparse_feature_mat, train_label_vec)
+    mainClassifier.train(FilePathConfig.train_corpus_path)
     # 测试
     mainClassifier.test(FilePathConfig.test_corpus_path)
 

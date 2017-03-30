@@ -8,7 +8,7 @@ from config.config import FilePathConfig
 
 # @mem.cache
 def get_data():
-    data = load_svmlight_file(FilePathConfig.sparse_feature_mat_path)
+    data = load_svmlight_file(FilePathConfig.train_feature_mat_path)
     return data[0], data[1]
 
 

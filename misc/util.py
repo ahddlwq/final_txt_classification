@@ -9,14 +9,14 @@ class Util(object):
         pass
 
     @staticmethod
-    def save_cate_dic_into_pkl(self):
+    def save_cate_dic_into_pkl():
         cate_file = codecs.open(FilePathConfig.category_file_path, "rb", FilePathConfig.file_encodeing, "ignore")
         cate_dic = {}
         cate_id = 0
         for line in cate_file:
             cate_dic[line.strip()] = cate_id
             cate_id += 1
-        self.save_object_into_pkl(cate_dic, FilePathConfig.category_pkl_path)
+        Util.save_object_into_pkl(cate_dic, FilePathConfig.category_pkl_path)
 
     @staticmethod
     def save_object_into_pkl(saved_object, pkl_path):
