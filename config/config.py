@@ -1,4 +1,6 @@
 # coding=UTF-8
+from multiprocessing import cpu_count
+
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.svm import LinearSVC
 
@@ -38,12 +40,13 @@ class ClassifierConfig(object):
     max_num_features = 35000
     # 是否使用二元字词
     is_use_bigram = False
-
+    # 使用一半的CPU
+    cpu_counts = cpu_count() / 2
     # 分类器代号
     rf_name = "rf"
     gbdt_name = "gbdt"
     svm_name = "svm"
-    rf_prams = {"n_estimators": 300}
+    rf_prams = {"n_estimators": 500, "n_jobs": cpu_counts, "random_state": 1}
     gbdt_prams = {}
     svm_prams = {}
 

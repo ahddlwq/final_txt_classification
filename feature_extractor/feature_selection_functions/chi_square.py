@@ -28,7 +28,7 @@ class ChiSquare(AbstractSelectFunction):
             for line in data:
                 # 清空列表
                 del terms[:]
-                splited_line = line.strip().split(FilePathConfig.space)
+                splited_line = line.strip().split(FilePathConfig.tab)
                 if not len(splited_line) == 2:
                     print "Error cache error"
                 label_id = int(splited_line[0])
@@ -45,7 +45,7 @@ class ChiSquare(AbstractSelectFunction):
                     feature_stat[term.term_id][label_id] += 1
                     feature_freq[term.term_id] += 1
                 if num_docs_read % 500 == 0:
-                    print "sanned", num_docs_read
+                    print "chi ", num_docs_read
                 num_docs_read += 1
         except Exception, e:
             print e.message

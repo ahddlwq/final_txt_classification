@@ -1,10 +1,10 @@
 # coding=UTF-8
+import sys
+
+sys.path.append("../")
 import cPickle
 import codecs
 import os
-import sys
-
-sys.path.append("")
 from sklearn import metrics
 from sklearn.datasets import load_svmlight_file
 
@@ -77,7 +77,7 @@ class MainClassifier(object):
             term = selected_features_queue.get()
             feature_to_sort.append(term)
             word = self.lexicon.get_word(term.term_id)
-            content = word.name + " " + word.df + " " + str(term.weight)
+            content = word.name + " " + str(word.df) + " " + str(term.weight)
             selected_features_file.write(content + "\n")
 
         selected_features_file.close()
@@ -111,7 +111,7 @@ class MainClassifier(object):
             if len(terms) > self.longest_length_doc:
                 self.longest_length_doc = len(terms)
 
-            line_result = str(self.category_dic[document.label]) + FilePathConfig.space
+            line_result = str(self.category_dic[document.label]) + FilePathConfig.tab
             for term in terms:
                 line_result += (str(term.term_id) + FilePathConfig.colon + str(term.weight))
                 line_result += FilePathConfig.space
@@ -123,7 +123,10 @@ class MainClassifier(object):
 
     # 添加多篇文档，循环调用添加单篇文档
     def add_documents(self, raw_documents):
+        count = 0
         for raw_document in raw_documents:
+            print "加载", count
+            count += 1
             self.add_document(raw_document)
 
         self.close_cache()
