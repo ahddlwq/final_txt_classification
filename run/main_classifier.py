@@ -5,7 +5,6 @@ sys.path.append("../")
 import cPickle
 import codecs
 import os
-from sklearn import metrics
 from sklearn.datasets import load_svmlight_file
 
 from config.config import FilePathConfig, ClassifierConfig
@@ -177,12 +176,10 @@ class MainClassifier(object):
     # 训练和评测相关
     # 打印分类结果与评测结果
     def print_classify_result(self, predicted_class, raw_class_label):
-        m_precision = metrics.precision_score(raw_class_label, predicted_class, average="micro")
-        m_recall = metrics.recall_score(raw_class_label, predicted_class, average="macro")
-        print m_precision, m_recall
-        print metrics.classification_report(raw_class_label, predicted_class)
-        test_result = TestResult()
-        test_result.evaluation(predicted_class, raw_class_label)
+        labels = sorted(self.category_dic.iteritems(), key=lambda key_value: key_value[1])
+        labels = [labels_id_pair[0] for labels_id_pair in labels]
+        test_result = TestResult(predicted_class, raw_class_label, labels)
+        test_result.print_report()
 
     def train(self, train_corpus_path):
         print "train"
@@ -294,7 +291,6 @@ if __name__ == '__main__':
     mainClassifier.train(FilePathConfig.train_corpus_path)
     # 测试
     mainClassifier.test(FilePathConfig.test_corpus_path)
-
     # ----------------------------------------------------------------------------------------------------
     # 对外来的数据进行分类
     # mainClassifier = MainClassifier()

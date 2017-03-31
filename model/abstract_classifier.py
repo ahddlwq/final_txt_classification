@@ -46,9 +46,9 @@ class AbstractClassifier(object):
         self.model = cPickle.load(open(self.model_path, 'r'))
 
     def train(self, feature_mat, label_vec):
-        # self.model = ClassifierConfig.classifier_init_dic[ClassifierConfig.cur_single_model]
-        self.model = ClassifierConfig.gsearch
+        self.model = ClassifierConfig.classifier_init_dic[ClassifierConfig.cur_single_model]
+        # self.model = ClassifierConfig.gsearch
         print "model training"
         self.model.fit(feature_mat, label_vec)
-        print self.model.grid_scores_, self.model.best_params_, self.model.best_score_
+        # print self.model.grid_scores_, self.model.best_params_, self.model.best_score_
         self.save_model()

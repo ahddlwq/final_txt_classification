@@ -20,7 +20,7 @@ class FilePathConfig(object):
     file_encodeing = "UTF-8"
     is_need_print_detail = False
 
-    result_report_path = file_root_path + "result_report.pkl"
+    result_report_path = file_root_path + "result_report%s.pkl"
 
     # 用于分割文件中的内容
     tab = "\t"
