@@ -1,7 +1,7 @@
 import cPickle
 
 from config.config import ClassifierConfig
-
+from misc.util import Util
 
 class AbstractClassifier(object):
 
@@ -17,38 +17,22 @@ class AbstractClassifier(object):
         if self.model is None:
             self.load_model()
 
-        classify_results = []
         raw_results = self.model.predict(documents)
-        # print raw_results
-        # for i in range(raw_results.shape[0]):
-        #     line = raw_results[i]
-        #     index = np.argmax(line)
-        #     classify_results.append(index)
-        # print classify_results
         return raw_results
-
-    # def classify_top_k(self, documents, top_k):
-    #     if self.model is None:
-    #         self.load_model()
-    #
-    #     classify_results = []
-    #     raw_results = self.model.predict_proba(documents)
-    #     print raw_results
-    #     for i in range(raw_results[0].shape[1]):
-    #         classify_results.append(SingleClassifyResult(i, raw_results[0][1]))
-    #     sorted(classify_results)
-    #     return classify_results[:top_k]
 
     def save_model(self):
         cPickle.dump(self.model, open(self.model_path, 'w'))
 
     def load_model(self):
+        if not Util.is_file(self.model_path):
+            print "model not exist"
+            Util.quit()
         self.model = cPickle.load(open(self.model_path, 'r'))
 
     def train(self, feature_mat, label_vec):
         self.model = ClassifierConfig.classifier_init_dic[ClassifierConfig.cur_single_model]
-        # self.model = ClassifierConfig.gsearch
         print "model training"
         self.model.fit(feature_mat, label_vec)
-        # print self.model.grid_scores_, self.model.best_params_, self.model.best_score_
         self.save_model()
+        if hasattr(self.model, 'best_params_'):
+            print self.model.best_params_, self.model.best_score_

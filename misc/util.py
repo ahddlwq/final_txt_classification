@@ -1,5 +1,7 @@
 import cPickle
 import codecs
+import os
+import sys
 
 from config.config import FilePathConfig
 
@@ -33,6 +35,19 @@ class Util(object):
     def load_object_from_pkl(pkl_path):
         return cPickle.load(open(pkl_path, 'r'))
 
+    @staticmethod
+    def quit():
+        try:
+            print "exit"
+            sys.exit(0)
+        except:
+            pass
+        finally:
+            pass
+
+    @staticmethod
+    def is_file(file_path):
+        return os.path.isfile(file_path)
 
 if __name__ == '__main__':
     util = Util()

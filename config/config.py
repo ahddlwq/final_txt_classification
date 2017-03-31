@@ -48,21 +48,27 @@ class ClassifierConfig(object):
     rf_name = "rf"
     gbdt_name = "gbdt"
     svm_name = "svm"
+    grid_search_name = "grid"
     rf_prams = {"n_estimators": 100, "n_jobs": -1, "random_state": 1, "max_depth": 200, "min_samples_split": 3,
                 "min_samples_leaf": 3}
     gbdt_prams = {}
     svm_prams = {}
 
     # rf_grid_search_prams = {"n_estimators": range(50,150,10),"max_depth":range(50,200,10),"min_samples_split":range(5,20,3),"min_samples_leaf":range(5,20,3)}
-    rf_grid_search_prams = {"n_estimators": range(50, 101, 50)}
-    gsearch = GridSearchCV(estimator=RandomForestClassifier(max_depth=100, min_samples_split=20,
-                                                            min_samples_leaf=20, oob_score=True, random_state=1,
+    rf_grid_search_prams = {"max_depth": range(100, 101, 50)}
+    gsearch = GridSearchCV(estimator=RandomForestClassifier(n_estimators=100, min_samples_split=5,
+                                                            min_samples_leaf=5, oob_score=True, random_state=1,
                                                             n_jobs=-1),
-                           param_grid=rf_grid_search_prams, iid=False, cv=5)
+                           param_grid=rf_grid_search_prams, iid=False, cv=3)
 
     # 当前系统是使用boosting，还是单模型进行训练和测试
     is_single_model = True
-    cur_single_model = rf_name
+    is_grid_search = True
+
+    # 能够预测，给出概率的分类器
+    can_predict_pro_classifiers = [rf_name]
+
+    cur_single_model = grid_search_name
 
     # 现在需要进行boosting的分类器集合
     boosting_using_classifiers = [rf_name, gbdt_name, svm_name]
@@ -70,11 +76,14 @@ class ClassifierConfig(object):
     rf_model_path = file_root_path + "rf_model.pkl"
     gbdt_model_path = file_root_path + "gbdt_model.pkl"
     svm_model_path = file_root_path + "svm_model.pkl"
+    grid_search_model_path = file_root_path + "grid_model.pkl"
+
     boosting_model_path = file_root_path + "boosting_model.pkl"
 
     classifier_path_dic = {rf_name: rf_model_path,
                            gbdt_name: gbdt_model_path,
-                           svm_name: svm_model_path}
+                           svm_name: svm_model_path,
+                           grid_search_name: grid_search_model_path}
 
     classifier_pram_dic = {rf_name: rf_prams,
                            gbdt_name: gbdt_prams,
@@ -82,7 +91,8 @@ class ClassifierConfig(object):
 
     classifier_init_dic = {rf_name: RandomForestClassifier(**classifier_pram_dic[rf_name]),
                            gbdt_name: GradientBoostingClassifier(**classifier_pram_dic[gbdt_name]),
-                           svm_name: LinearSVC(**classifier_pram_dic[svm_name])}
+                           svm_name: LinearSVC(**classifier_pram_dic[svm_name]),
+                           grid_search_name: gsearch}
 
     classifier_weight_dic = {rf_name: 1,
                              gbdt_name: 1,

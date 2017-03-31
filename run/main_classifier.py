@@ -18,7 +18,7 @@ from feature_extractor.feature_filter.stop_word_filter import StopWordFilter
 from feature_extractor.feature_selection_functions.chi_square import ChiSquare
 from feature_extractor.feature_selection_functions.informantion_gain import InformationGain
 from misc.util import Util
-from model.rf_classifier import RFClassifier
+from model.abstract_classifier import AbstractClassifier
 
 
 class MainClassifier(object):
@@ -39,7 +39,7 @@ class MainClassifier(object):
         # 缓存文件
         self.cache_file = None
         # 这次要使用的分类器
-        self.abstract_classifier = None
+        self.abstract_classifier = AbstractClassifier()
         # 文章最长的长度
         self.longest_length_doc = 0
         # 文章的总数量
@@ -49,6 +49,9 @@ class MainClassifier(object):
     # -----------------------------------------------------------------------------------------------------------------
     # 训练前的准备，构造词典，特征降维，准备训练数据
     def construct_lexicon(self, train_corpus_path):
+        if Util.is_file(FilePathConfig.lexicon_pkl_path):
+            print "has lexicon"
+            return
         # 从原始语料中转换成稀疏矩阵，保存在cache中，同时会在lexicon里保存下所有的id_dic和name_dic
         self.add_documents_from_file(train_corpus_path)
         # 进行特征降维,返回一个保存了所有特征id的优先队列
@@ -183,7 +186,7 @@ class MainClassifier(object):
 
     def train(self, train_corpus_path):
         print "train"
-        self.load_model()
+        self.set_model()
         train_feature_mat, label_vec = self.corpus_to_feature_vec(train_corpus_path,
                                                                   FilePathConfig.train_feature_mat_path)
         self.abstract_classifier.train(train_feature_mat, label_vec)
@@ -191,7 +194,7 @@ class MainClassifier(object):
 
     def test(self, test_corpus_path):
         print "test"
-        self.load_model()
+        self.set_model()
         test_sparse_mat, label_vec = self.corpus_to_feature_vec(test_corpus_path, FilePathConfig.test_feature_mat_path)
         predicted_class = self.classify_documents(test_sparse_mat)
         print predicted_class
@@ -205,7 +208,7 @@ class MainClassifier(object):
     # 将传进来的批量json转换为可用于分类的特征向量矩阵,或者特征向量加原来的分类标签
     def corpus_to_feature_vec(self, corpus_path, result_path):
         if (os.path.isfile(result_path)):
-            print "loading"
+            print "loading data"
             return self.get_libsvm_data(result_path)
         jsons = codecs.open(corpus_path, 'rb', FilePathConfig.file_encodeing, 'ignore')
         test_sparse_mat = codecs.open(result_path, 'wb', FilePathConfig.file_encodeing, 'ignore')
@@ -233,22 +236,19 @@ class MainClassifier(object):
         test_sparse_mat.close()
         return self.get_libsvm_data(result_path)
 
-    def load_model(self):
+    def set_model(self):
         if ClassifierConfig.is_single_model:
-            self.abstract_classifier = RFClassifier()
+            self.abstract_classifier.model_path = ClassifierConfig.classifier_path_dic[
+                ClassifierConfig.cur_single_model]
         else:
-            print "None"
-            return None
+            print "not single model"
 
-    def load_lexicon(self, lexicon_path=None):
-        if lexicon_path is None:
-            if os.path.isfile(FilePathConfig.lexicon_pkl_path):
-                print "load lexicon"
-                return Util.load_object_from_pkl(FilePathConfig.lexicon_pkl_path)
-            else:
-                return Lexicon()
-        else:
+    def load_lexicon(self):
+        if Util.is_file(FilePathConfig.lexicon_pkl_path):
+            print "load lexicon"
             return Util.load_object_from_pkl(FilePathConfig.lexicon_pkl_path)
+        else:
+            return Lexicon()
 
     # 从文件加载字典对象
     def load_lexicon_from_pkl(self):
@@ -284,9 +284,9 @@ if __name__ == '__main__':
     # 训练和评测阶段，这里把所有可能需要自定义的参数全部都移到配置文件里了，如果需要也可以换成传参调用的形式
     # 需要外面传进来的参数只有训练集的位置和验证集的位置
     mainClassifier = MainClassifier()
-    print mainClassifier.lexicon.locked
+    print "lexicon locked:", mainClassifier.lexicon.locked
     # 根据原始语料进行语料预处理（切词、过滤、特征降维）
-    # mainClassifier.construct_lexicon(FilePathConfig.total_corpus_path)
+    mainClassifier.construct_lexicon(FilePathConfig.total_corpus_path)
     # 训练
     mainClassifier.train(FilePathConfig.train_corpus_path)
     # 测试
