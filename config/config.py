@@ -2,8 +2,8 @@
 from multiprocessing import cpu_count
 
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.grid_search import GridSearchCV
 from sklearn.svm import LinearSVC
-
 
 class FilePathConfig(object):
     file_root_path = "../file/"
@@ -19,6 +19,8 @@ class FilePathConfig(object):
 
     file_encodeing = "UTF-8"
     is_need_print_detail = False
+
+    result_report_path = file_root_path + "result_report.pkl"
 
     # 用于分割文件中的内容
     tab = "\t"
@@ -41,14 +43,22 @@ class ClassifierConfig(object):
     # 是否使用二元字词
     is_use_bigram = False
     # 使用一半的CPU
-    cpu_counts = cpu_count() / 2
+    cpu_counts = cpu_count()
     # 分类器代号
     rf_name = "rf"
     gbdt_name = "gbdt"
     svm_name = "svm"
-    rf_prams = {"n_estimators": 500, "n_jobs": cpu_counts, "random_state": 1}
+    rf_prams = {"n_estimators": 100, "n_jobs": -1, "random_state": 1, "max_depth": 200, "min_samples_split": 3,
+                "min_samples_leaf": 3}
     gbdt_prams = {}
     svm_prams = {}
+
+    # rf_grid_search_prams = {"n_estimators": range(50,150,10),"max_depth":range(50,200,10),"min_samples_split":range(5,20,3),"min_samples_leaf":range(5,20,3)}
+    rf_grid_search_prams = {"n_estimators": range(50, 101, 50)}
+    gsearch = GridSearchCV(estimator=RandomForestClassifier(max_depth=100, min_samples_split=20,
+                                                            min_samples_leaf=20, oob_score=True, random_state=1,
+                                                            n_jobs=-1),
+                           param_grid=rf_grid_search_prams, iid=False, cv=5)
 
     # 当前系统是使用boosting，还是单模型进行训练和测试
     is_single_model = True

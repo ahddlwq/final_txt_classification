@@ -100,9 +100,10 @@ class MainClassifier(object):
             self.cache_file = codecs.open(FilePathConfig.cache_file_path, 'wb', FilePathConfig.file_encodeing, 'ignore')
 
         # 添加词的过滤器
-        stop_words_filter = StopWordFilter()
-        speech_filter = SpeechFilter()
-        document.add_filter(speech_filter).add_filter(stop_words_filter)
+        if not ClassifierConfig.is_use_bigram:
+            stop_words_filter = StopWordFilter()
+            speech_filter = SpeechFilter()
+            document.add_filter(speech_filter).add_filter(stop_words_filter)
         content_words = document.get_content_words_feature()
         self.lexicon.add_document(content_words)
         words = self.lexicon.convert_document(content_words)
@@ -125,7 +126,8 @@ class MainClassifier(object):
     def add_documents(self, raw_documents):
         count = 0
         for raw_document in raw_documents:
-            print "加载", count
+            if count % 10000 == 0:
+                print "加载", count
             count += 1
             self.add_document(raw_document)
 
@@ -176,7 +178,7 @@ class MainClassifier(object):
     # 打印分类结果与评测结果
     def print_classify_result(self, predicted_class, raw_class_label):
         m_precision = metrics.precision_score(raw_class_label, predicted_class, average="micro")
-        m_recall = metrics.recall_score(raw_class_label, predicted_class, average="micro")
+        m_recall = metrics.recall_score(raw_class_label, predicted_class, average="macro")
         print m_precision, m_recall
         print metrics.classification_report(raw_class_label, predicted_class)
         test_result = TestResult()
@@ -205,9 +207,16 @@ class MainClassifier(object):
 
     # 将传进来的批量json转换为可用于分类的特征向量矩阵,或者特征向量加原来的分类标签
     def corpus_to_feature_vec(self, corpus_path, result_path):
+        if (os.path.isfile(result_path)):
+            print "loading"
+            return self.get_libsvm_data(result_path)
         jsons = codecs.open(corpus_path, 'rb', FilePathConfig.file_encodeing, 'ignore')
         test_sparse_mat = codecs.open(result_path, 'wb', FilePathConfig.file_encodeing, 'ignore')
+        count = 0
         for json in jsons:
+            count += 1
+            if count % 10000 == 0:
+                print "add", count
             document = Document(json)
             label_id = self.category_dic[document.label]
             content_words = document.get_content_words_feature()
@@ -257,7 +266,7 @@ class MainClassifier(object):
     def save_lexicon_into_pkl(self):
         cPickle.dump(self.lexicon, open(FilePathConfig.lexicon_pkl_path, 'wb'))
 
-    # 调整boosting的权重
+    # 调整boosting的权重　
     def adapt_boosting_weight(self):
         pass
 
@@ -279,8 +288,8 @@ if __name__ == '__main__':
     # 需要外面传进来的参数只有训练集的位置和验证集的位置
     mainClassifier = MainClassifier()
     print mainClassifier.lexicon.locked
-    # 根据原始语料进行语料预处理（切词、过滤、特征降维），权重计算
-    mainClassifier.construct_lexicon(FilePathConfig.train_corpus_path)
+    # 根据原始语料进行语料预处理（切词、过滤、特征降维）
+    # mainClassifier.construct_lexicon(FilePathConfig.total_corpus_path)
     # 训练
     mainClassifier.train(FilePathConfig.train_corpus_path)
     # 测试
