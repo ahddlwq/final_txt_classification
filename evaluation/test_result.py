@@ -5,7 +5,6 @@ from sklearn import metrics
 from config.config import FilePathConfig
 from misc.util import Util
 
-
 class TestResult(object):
     def __init__(self, predicted_class, raw_class_label, labels):
         self.predicted_class = predicted_class
@@ -28,8 +27,8 @@ class TestResult(object):
                                                                    target_names=self.labels)
         self.confusion_matrix = metrics.confusion_matrix(raw_class_label, predicted_class)
 
-        print self.classification_report
-        print self.confusion_matrix
+        Util.log_tool.log.info(self.classification_report.encode(FilePathConfig.file_encodeing))
+        Util.log_tool.log.info(self.confusion_matrix)
         self.save_report()
 
     def save_report(self):
