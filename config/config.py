@@ -21,7 +21,7 @@ class FilePathConfig(object):
     is_need_print_detail = False
 
     result_report_path = file_root_path + "result_report%s.pkl"
-
+    log_path = file_root_path + "all.log"
     # 用于分割文件中的内容
     tab = "\t"
     colon = ":"

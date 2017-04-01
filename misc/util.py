@@ -4,9 +4,12 @@ import os
 import sys
 
 from config.config import FilePathConfig
+from log_tool import LogTool
 
 
 class Util(object):
+    log_tool = LogTool()
+
     def __init__(self):
         pass
 
@@ -51,4 +54,5 @@ class Util(object):
 
 if __name__ == '__main__':
     util = Util()
-    util.save_cate_dic_into_pkl()
+    # util.save_cate_dic_into_pkl()
+    util.log_tool.log.info("asd2")

@@ -50,7 +50,7 @@ class MainClassifier(object):
     # 训练前的准备，构造词典，特征降维，准备训练数据
     def construct_lexicon(self, train_corpus_path):
         if Util.is_file(FilePathConfig.lexicon_pkl_path):
-            print "has lexicon"
+            Util.log_tool.log.debug("has lexicon")
             return
         # 从原始语料中转换成稀疏矩阵，保存在cache中，同时会在lexicon里保存下所有的id_dic和name_dic
         self.add_documents_from_file(train_corpus_path)
@@ -94,11 +94,11 @@ class MainClassifier(object):
 
         # 检查类别是否合法
         if document.label not in self.category_dic:
-            print "Error category error"
+            Util.log_tool.log.error("Error category error")
 
         # 如果cache文件还未打开，则打开
         if self.cache_file is None:
-            print "open file"
+            Util.log_tool.log.debug("open file")
             self.cache_file = codecs.open(FilePathConfig.cache_file_path, 'wb', FilePathConfig.file_encodeing, 'ignore')
 
         # 添加词的过滤器
@@ -129,7 +129,7 @@ class MainClassifier(object):
         count = 0
         for raw_document in raw_documents:
             if count % 10000 == 0:
-                print "加载", count
+                Util.log_tool.log.debug("加载" + str(count))
             count += 1
             self.add_document(raw_document)
 
@@ -185,7 +185,7 @@ class MainClassifier(object):
         test_result.print_report()
 
     def train(self, train_corpus_path):
-        print "train"
+        Util.log_tool.log.debug("train")
         self.set_model()
         train_feature_mat, label_vec = self.corpus_to_feature_vec(train_corpus_path,
                                                                   FilePathConfig.train_feature_mat_path)
@@ -193,12 +193,10 @@ class MainClassifier(object):
         pass
 
     def test(self, test_corpus_path):
-        print "test"
+        Util.log_tool.log.debug("test")
         self.set_model()
         test_sparse_mat, label_vec = self.corpus_to_feature_vec(test_corpus_path, FilePathConfig.test_feature_mat_path)
         predicted_class = self.classify_documents(test_sparse_mat)
-        print predicted_class
-        print label_vec
         self.print_classify_result(predicted_class, label_vec)
 
     def get_libsvm_data(self, path):
@@ -208,7 +206,7 @@ class MainClassifier(object):
     # 将传进来的批量json转换为可用于分类的特征向量矩阵,或者特征向量加原来的分类标签
     def corpus_to_feature_vec(self, corpus_path, result_path):
         if (os.path.isfile(result_path)):
-            print "loading data"
+            Util.log_tool.log.debug("loading data")
             return self.get_libsvm_data(result_path)
         jsons = codecs.open(corpus_path, 'rb', FilePathConfig.file_encodeing, 'ignore')
         test_sparse_mat = codecs.open(result_path, 'wb', FilePathConfig.file_encodeing, 'ignore')
@@ -216,7 +214,7 @@ class MainClassifier(object):
         for json in jsons:
             count += 1
             if count % 10000 == 0:
-                print "add", count
+                Util.log_tool.log.debug("add" + str(count))
             document = Document(json)
             label_id = self.category_dic[document.label]
             content_words = document.get_content_words_feature()
@@ -241,11 +239,11 @@ class MainClassifier(object):
             self.abstract_classifier.model_path = ClassifierConfig.classifier_path_dic[
                 ClassifierConfig.cur_single_model]
         else:
-            print "not single model"
+            Util.log_tool.log.debug("not single model")
 
     def load_lexicon(self):
         if Util.is_file(FilePathConfig.lexicon_pkl_path):
-            print "load lexicon"
+            Util.log_tool.log.debug("load lexicon")
             return Util.load_object_from_pkl(FilePathConfig.lexicon_pkl_path)
         else:
             return Lexicon()
@@ -277,19 +275,19 @@ class MainClassifier(object):
     def close_cache(self):
         # 在需要的时候关闭cache文件
         if self.cache_file is not None:
-            print "close cache"
+            Util.log_tool.log.debug("close cache")
             self.cache_file.close()
 
 if __name__ == '__main__':
     # 训练和评测阶段，这里把所有可能需要自定义的参数全部都移到配置文件里了，如果需要也可以换成传参调用的形式
     # 需要外面传进来的参数只有训练集的位置和验证集的位置
     mainClassifier = MainClassifier()
-    print "lexicon locked:", mainClassifier.lexicon.locked
-    # 根据原始语料进行语料预处理（切词、过滤、特征降维）
+    Util.log_tool.log.debug("lexicon locked:" + str(mainClassifier.lexicon.locked))
+    # # 根据原始语料进行语料预处理（切词、过滤、特征降维）
     mainClassifier.construct_lexicon(FilePathConfig.total_corpus_path)
-    # 训练
+    # # 训练
     mainClassifier.train(FilePathConfig.train_corpus_path)
-    # 测试
+    # # 测试
     mainClassifier.test(FilePathConfig.test_corpus_path)
     # ----------------------------------------------------------------------------------------------------
     # 对外来的数据进行分类
