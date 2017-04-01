@@ -4,7 +4,6 @@ import sys
 sys.path.append("../")
 import cPickle
 import codecs
-import os
 from sklearn.datasets import load_svmlight_file
 
 from config.config import FilePathConfig, ClassifierConfig
@@ -19,7 +18,8 @@ from feature_extractor.feature_selection_functions.chi_square import ChiSquare
 from feature_extractor.feature_selection_functions.informantion_gain import InformationGain
 from misc.util import Util
 from model.abstract_classifier import AbstractClassifier
-
+import numpy as np
+from scipy.sparse import csr_matrix
 
 class MainClassifier(object):
     def __init__(self):
@@ -66,8 +66,6 @@ class MainClassifier(object):
         self.lexicon.locked = True
         # 保存下词典映射文件
         self.save_lexicon_into_pkl()
-        # 根据新的映射关系，将cache文件转化为权重的稀疏矩阵
-        # self.convert_and_save_sparse_feature_mat(fid_dic)
 
 
     def output_selected_features_and_get_fid_dic(self, selected_features_queue):
@@ -90,6 +88,7 @@ class MainClassifier(object):
 
     # 添加单篇文档用于构造词典
     def add_document(self, raw_document):
+        # 将原始数据转换成整齐格式的文档
         document = Document(raw_document)
 
         # 检查类别是否合法
@@ -101,11 +100,13 @@ class MainClassifier(object):
             Util.log_tool.log.debug("open file")
             self.cache_file = codecs.open(FilePathConfig.cache_file_path, 'wb', FilePathConfig.file_encodeing, 'ignore')
 
-        # 添加词的过滤器
+        # 如果需要对文章的内容进行过滤，则添加词的过滤器
         if not ClassifierConfig.is_use_bigram:
             stop_words_filter = StopWordFilter()
             speech_filter = SpeechFilter()
             document.add_filter(speech_filter).add_filter(stop_words_filter)
+
+        # 从文档中拿出我们需要的特征
         content_words = document.get_content_words_feature()
         self.lexicon.add_document(content_words)
         words = self.lexicon.convert_document(content_words)
@@ -120,7 +121,7 @@ class MainClassifier(object):
                 line_result += FilePathConfig.space
             self.cache_file.write(line_result.strip() + '\n')
         except:
-            print "Error write cache error when add document"
+            Util.log_tool.log.error("Error write cache error when add document")
 
         self.num_doc += 1
 
@@ -144,32 +145,26 @@ class MainClassifier(object):
     # -----------------------------------------------------------------------------------------------------------------
     # 分类相关
     # 分类单篇文档，返回多个结果
-    def classify_document_top_k(self, raw_document, k):
-        document = Document(raw_document)
-        return self.abstract_classifier.classify_top_k(document, k)
+    def classify_document_top_k(self, feature_mat, k):
+        return self.abstract_classifier.classify_top_k(feature_mat, k)
 
     # 分类多篇文档，循环调用分类单篇文档，返回多个结果
-    def classify_documents_top_k(self, raw_documents, k):
-        # classify_results = []
-        # for raw_document in raw_documents:
-        #     classify_results.append(self.classify_document_top_k(raw_document, k))
-        # return classify_results
-        return self.abstract_classifier.classify_top_k(raw_documents, 1)
+    def classify_documents_top_k(self, feature_mat, k):
+        return self.abstract_classifier.classify_top_k(feature_mat, k)
 
     # 从文件分类多篇文档，循环调用分类单篇文档，返回多个结果
     def classify_documents_top_k_from_file(self, raw_documents_file_path, k):
-        raw_documents = codecs.open(raw_documents_file_path, 'rb', FilePathConfig.file_encodeing, 'ignore')
-        classify_results = self.classify_documents_top_k(raw_documents, k)
-        raw_documents.close()
+        feature_mat = self.corpus_to_feature_mat(raw_documents_file_path)
+        classify_results = self.classify_documents_top_k(feature_mat, k)
         return classify_results
 
     # 分类单篇文档,只返回一个结果
-    def classify_document(self, raw_document):
-        return self.classify_document_top_k(raw_document, 1)
+    def classify_document(self, feature_mat):
+        return self.classify_document_top_k(feature_mat, 1)
 
     # 分类多篇文档，循环调用分类单篇文档,只返回一个结果
-    def classify_documents(self, raw_documents):
-        return self.classify_documents_top_k(raw_documents, 1)
+    def classify_documents(self, feature_mat):
+        return self.classify_documents_top_k(feature_mat, 1)
 
     # 从文件分类多篇文档，循环调用分类单篇文档,只返回一个结果
     def classify_documents_from_file(self, raw_documents_file_path):
@@ -187,15 +182,16 @@ class MainClassifier(object):
     def train(self, train_corpus_path):
         Util.log_tool.log.debug("train")
         self.set_model()
-        train_feature_mat, label_vec = self.corpus_to_feature_vec(train_corpus_path,
-                                                                  FilePathConfig.train_feature_mat_path)
+        train_feature_mat, label_vec = self.corpus_to_feature_and_label_mat(train_corpus_path,
+                                                                            FilePathConfig.train_feature_mat_path)
         self.abstract_classifier.train(train_feature_mat, label_vec)
         pass
 
     def test(self, test_corpus_path):
         Util.log_tool.log.debug("test")
         self.set_model()
-        test_sparse_mat, label_vec = self.corpus_to_feature_vec(test_corpus_path, FilePathConfig.test_feature_mat_path)
+        test_sparse_mat, label_vec = self.corpus_to_feature_and_label_mat(test_corpus_path,
+                                                                          FilePathConfig.test_feature_mat_path)
         predicted_class = self.classify_documents(test_sparse_mat)
         self.print_classify_result(predicted_class, label_vec)
 
@@ -203,35 +199,57 @@ class MainClassifier(object):
         data = load_svmlight_file(path)
         return data[0], data[1]
 
+    def corpus_to_feature_mat(self, corpus_path):
+        row = list()
+        col = list()
+        weight = list()
+        row_num = 0
+        data = codecs.open(corpus_path, 'rb', FilePathConfig.file_encodeing, 'ignore')
+        for line in data:
+            document = Document(line)
+            content_words = document.get_content_words_feature()
+            doc_len = len(content_words)
+            words = self.lexicon.convert_document(content_words)
+            terms = self.test_vector_builder.build(words, True, doc_len)
+
+            terms.sort(cmp=lambda x, y: cmp(x.term_id, y.term_id))
+            for term in terms:
+                row.append(row_num)
+                col.append(term.term_id)
+                weight.append(term.weight)
+            row_num += 1
+        sparse_mat = csr_matrix((np.array(weight), (np.array(row), np.array(col))), shape=(len(weight), len(weight)))
+        return sparse_mat
+
     # 将传进来的批量json转换为可用于分类的特征向量矩阵,或者特征向量加原来的分类标签
-    def corpus_to_feature_vec(self, corpus_path, result_path):
-        if (os.path.isfile(result_path)):
+    def corpus_to_feature_and_label_mat(self, corpus_path, result_path):
+        if Util.is_file(result_path):
             Util.log_tool.log.debug("loading data")
             return self.get_libsvm_data(result_path)
-        jsons = codecs.open(corpus_path, 'rb', FilePathConfig.file_encodeing, 'ignore')
-        test_sparse_mat = codecs.open(result_path, 'wb', FilePathConfig.file_encodeing, 'ignore')
+        data = codecs.open(corpus_path, 'rb', FilePathConfig.file_encodeing, 'ignore')
+        sparse_mat = codecs.open(result_path, 'wb', FilePathConfig.file_encodeing, 'ignore')
         count = 0
-        for json in jsons:
+        for line in data:
             count += 1
             if count % 10000 == 0:
                 Util.log_tool.log.debug("add" + str(count))
-            document = Document(json)
+            document = Document(line)
             label_id = self.category_dic[document.label]
             content_words = document.get_content_words_feature()
             doc_len = len(content_words)
 
             words = self.lexicon.convert_document(content_words)
-            # terms = self.test_vector_builder.build(words, normalized=True)
             terms = self.test_vector_builder.build(words, True, doc_len)
 
-            test_sparse_mat.write(str(label_id))
+            sparse_mat.write(str(label_id))
+            # 将id_weight对按照id大小，从小到大排列
             terms.sort(cmp=lambda x, y: cmp(x.term_id, y.term_id))
             for term in terms:
-                test_sparse_mat.write(" " + str(term.term_id) + ":" + str(term.weight))
-            test_sparse_mat.write("\n")
+                sparse_mat.write(" " + str(term.term_id) + ":" + str(term.weight))
+            sparse_mat.write("\n")
 
-        jsons.close()
-        test_sparse_mat.close()
+        data.close()
+        sparse_mat.close()
         return self.get_libsvm_data(result_path)
 
     def set_model(self):
@@ -252,9 +270,7 @@ class MainClassifier(object):
     def load_lexicon_from_pkl(self):
         return Util.load_object_from_pkl(FilePathConfig.lexicon_pkl_path)
 
-
-    # 加载类别与编号字典
-    # 返回内容类似为{"时政":1,"军事":2,……}
+    # 加载类别与编号字典,字典内容类似为{"时政":1,"军事":2,……}
     def load_category_dic_from_pkl(self):
         return Util.load_object_from_pkl(FilePathConfig.category_pkl_path)
 
@@ -269,8 +285,10 @@ class MainClassifier(object):
     def get_selection_funtion(self):
         if ClassifierConfig.cur_selection_function == ClassifierConfig.chi_square:
             return ChiSquare()
-        else:
+        elif ClassifierConfig.cur_selection_function == ClassifierConfig.information_gain:
             return InformationGain()
+        else:
+            Util.log_tool.log.error("get_selection_funtion error")
 
     def close_cache(self):
         # 在需要的时候关闭cache文件

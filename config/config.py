@@ -42,7 +42,7 @@ class ClassifierConfig(object):
     max_num_features = 35000
     # 是否使用二元字词
     is_use_bigram = False
-    # 使用一半的CPU
+    # 获取可用的CPU数量，用于配置分类器
     cpu_counts = cpu_count()
     # 分类器代号
     rf_name = "rf"
@@ -54,11 +54,10 @@ class ClassifierConfig(object):
     gbdt_prams = {}
     svm_prams = {}
 
-    # rf_grid_search_prams = {"n_estimators": range(50,150,10),"max_depth":range(50,200,10),"min_samples_split":range(5,20,3),"min_samples_leaf":range(5,20,3)}
-    rf_grid_search_prams = {"max_depth": range(100, 101, 50)}
-    gsearch = GridSearchCV(estimator=RandomForestClassifier(n_estimators=100, min_samples_split=5,
-                                                            min_samples_leaf=5, oob_score=True, random_state=1,
-                                                            n_jobs=-1),
+    rf_grid_search_prams = {"min_samples_split": range(5, 7, 3), "min_samples_leaf": range(5, 7, 3)}
+    # rf_grid_search_prams = {"max_depth": range(100, 101, 50)}
+    gsearch = GridSearchCV(estimator=RandomForestClassifier(n_estimators=100, max_depth=100, oob_score=True,
+                                                            random_state=1, n_jobs=-1),
                            param_grid=rf_grid_search_prams, iid=False, cv=3)
 
     # 当前系统是使用boosting，还是单模型进行训练和测试
