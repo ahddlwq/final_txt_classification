@@ -23,20 +23,27 @@ class AbstractClassifier(object):
 
         final_results = []
         # 如果当前分类器支持返回概率，则走概率
-        if ClassifierConfig.cur_single_model in ClassifierConfig.can_predict_pro_classifiers:
+        if (top_k == 1) | (ClassifierConfig.cur_single_model not in ClassifierConfig.can_predict_pro_classifiers):
+            raw_results = self.model.predict(documents)
+            for raw_result in raw_results:
+                final_results.append([(raw_result, 1)])
+        else:
             pro_of_lines = self.model.predict_proba(documents)
-            line_result = []
             for pro_of_line in pro_of_lines:
+                line_result = []
                 # 降序获得概率最大的
                 pro_index = np.argsort(-pro_of_line)
                 for i in range(top_k):
-                    line_result.append((pro_index[i], pro_of_line[pro_index[i]]))
-            final_results.append(line_result)
-        else:
-            raw_results = self.model.predict(documents)
-            for raw_result in raw_results:
-                final_results.append((raw_result, 1))
+                    line_result.append((self.model.classes_[pro_index[i]], pro_of_line[pro_index[i]]))
+                final_results.append(line_result)
         return final_results
+
+    # def classify_top_k(self, documents, top_k):
+    #     if self.model is None:
+    #         self.load_model()
+    #
+    #     raw_results = self.model.predict(documents)
+    #     return raw_results
 
     def save_model(self):
         cPickle.dump(self.model, open(self.model_path, 'w'))
@@ -47,7 +54,7 @@ class AbstractClassifier(object):
             Util.quit()
         else:
             Util.log_tool.log.debug("loading model")
-        self.model = cPickle.load(open(self.model_path, 'r'))
+            self.model = cPickle.load(open(self.model_path, 'r'))
 
     def train(self, feature_mat, label_vec):
         self.model = ClassifierConfig.classifier_init_dic[ClassifierConfig.cur_single_model]

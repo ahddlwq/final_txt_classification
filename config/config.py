@@ -67,7 +67,7 @@ class ClassifierConfig(object):
     # 能够预测，给出概率的分类器
     can_predict_pro_classifiers = [rf_name]
 
-    cur_single_model = grid_search_name
+    cur_single_model = svm_name
 
     # 现在需要进行boosting的分类器集合
     boosting_using_classifiers = [rf_name, gbdt_name, svm_name]
