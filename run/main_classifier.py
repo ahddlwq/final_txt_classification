@@ -4,7 +4,6 @@ import codecs
 import sys
 
 import numpy as np
-import xgboost as xgb
 from scipy.sparse import csr_matrix
 from sklearn.datasets import load_svmlight_file
 
@@ -184,22 +183,11 @@ class MainClassifier(object):
         test_result.print_report()
 
     def train(self, train_corpus_path):
-        if ClassifierConfig.cur_single_model == ClassifierConfig.xgb_name:
-            self.train_xgb(train_corpus_path)
-            return
         Util.log_tool.log.debug("train")
         self.set_model()
         train_feature_mat, label_vec = self.corpus_to_feature_and_label_mat(train_corpus_path,
                                                                             FilePathConfig.train_feature_mat_path)
         self.abstract_classifier.train(train_feature_mat, label_vec)
-
-    def train_xgb(self, train_corpus_path):
-        Util.log_tool.log.debug("train")
-        dtrain = xgb.DMatrix(train_corpus_path)
-        print dtrain.get_label()
-        dtest = xgb.DMatrix(train_corpus_path)
-        param = {'max_depth': 2}
-
 
     def test(self, test_corpus_path):
         Util.log_tool.log.debug("test")

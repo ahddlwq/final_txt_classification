@@ -1,7 +1,8 @@
 # coding=UTF-8
 from multiprocessing import cpu_count
 
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+import xgboost as xgb
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.grid_search import GridSearchCV
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
@@ -55,7 +56,7 @@ class ClassifierConfig(object):
 
     rf_prams = {"n_estimators": 200, "n_jobs": cpu_counts, "random_state": 1, "max_depth": 200, "min_samples_split": 15,
                 "min_samples_leaf": 20}
-    xgb_prams = {"max_depth": 50}
+    xgb_prams = {"max_depth": 50, "seed": 1}
     svm_prams = {}
     lr_prams = {"random_state": 1, "n_jobs": cpu_counts}
 
@@ -98,7 +99,7 @@ class ClassifierConfig(object):
                            lr_name: lr_prams}
 
     classifier_init_dic = {rf_name: RandomForestClassifier(**classifier_pram_dic[rf_name]),
-                           xgb_name: GradientBoostingClassifier(**classifier_pram_dic[xgb_name]),
+                           xgb_name: xgb.XGBClassifier(**classifier_pram_dic[xgb_name]),
                            svm_name: LinearSVC(**classifier_pram_dic[svm_name]),
                            lr_name: LogisticRegression(**classifier_pram_dic[lr_name]),
                            grid_search_name: gsearch}
