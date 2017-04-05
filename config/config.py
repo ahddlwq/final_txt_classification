@@ -49,15 +49,15 @@ class ClassifierConfig(object):
     gbdt_name = "gbdt"
     svm_name = "svm"
     grid_search_name = "grid"
-    rf_prams = {"n_estimators": 100, "n_jobs": -1, "random_state": 1, "max_depth": 200, "min_samples_split": 3,
-                "min_samples_leaf": 3}
+    rf_prams = {"n_estimators": 200, "n_jobs": -1, "random_state": 1, "max_depth": 200, "min_samples_split": 15,
+                "min_samples_leaf": 20}
     gbdt_prams = {}
     svm_prams = {}
 
-    rf_grid_search_prams = {"min_samples_split": range(5, 7, 3), "min_samples_leaf": range(5, 7, 3)}
-    # rf_grid_search_prams = {"max_depth": range(100, 101, 50)}
-    gsearch = GridSearchCV(estimator=RandomForestClassifier(n_estimators=100, max_depth=100, oob_score=True,
-                                                            random_state=1, n_jobs=-1),
+    rf_grid_search_prams = {"max_depth": range(50, 150, 20)}
+    gsearch = GridSearchCV(estimator=RandomForestClassifier(n_estimators=200, oob_score=True,
+                                                            random_state=1, n_jobs=-1, min_samples_leaf=15,
+                                                            min_samples_split=20),
                            param_grid=rf_grid_search_prams, iid=False, cv=3)
 
     # 当前系统是使用boosting，还是单模型进行训练和测试
@@ -67,7 +67,7 @@ class ClassifierConfig(object):
     # 能够预测，给出概率的分类器
     can_predict_pro_classifiers = [rf_name]
 
-    cur_single_model = svm_name
+    cur_single_model = grid_search_name
 
     # 现在需要进行boosting的分类器集合
     boosting_using_classifiers = [rf_name, gbdt_name, svm_name]
