@@ -1,14 +1,12 @@
 # coding=UTF-8
-import sys
-
-sys.path.append("../")
 import cPickle
 import codecs
-from sklearn.datasets import load_svmlight_file
 import sys
 
-reload(sys)
-sys.setdefaultencoding('utf-8')
+import numpy as np
+import xgboost as xgb
+from scipy.sparse import csr_matrix
+from sklearn.datasets import load_svmlight_file
 
 from config.config import FilePathConfig, ClassifierConfig
 from evaluation.test_result import TestResult
@@ -22,8 +20,10 @@ from feature_extractor.feature_selection_functions.chi_square import ChiSquare
 from feature_extractor.feature_selection_functions.informantion_gain import InformationGain
 from misc.util import Util
 from model.abstract_classifier import AbstractClassifier
-import numpy as np
-from scipy.sparse import csr_matrix
+
+sys.path.append("../")
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 class MainClassifier(object):
     def __init__(self):
@@ -184,11 +184,22 @@ class MainClassifier(object):
         test_result.print_report()
 
     def train(self, train_corpus_path):
+        if ClassifierConfig.cur_single_model == ClassifierConfig.xgb_name:
+            self.train_xgb(train_corpus_path)
+            return
         Util.log_tool.log.debug("train")
         self.set_model()
         train_feature_mat, label_vec = self.corpus_to_feature_and_label_mat(train_corpus_path,
                                                                             FilePathConfig.train_feature_mat_path)
         self.abstract_classifier.train(train_feature_mat, label_vec)
+
+    def train_xgb(self, train_corpus_path):
+        Util.log_tool.log.debug("train")
+        dtrain = xgb.DMatrix(train_corpus_path)
+        print dtrain.get_label()
+        dtest = xgb.DMatrix(train_corpus_path)
+        param = {'max_depth': 2}
+
 
     def test(self, test_corpus_path):
         Util.log_tool.log.debug("test")

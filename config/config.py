@@ -3,13 +3,15 @@ from multiprocessing import cpu_count
 
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.grid_search import GridSearchCV
+from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
+
 
 class FilePathConfig(object):
     file_root_path = "../file/"
     category_pkl_path = file_root_path + "category.pkl"
     category_file_path = file_root_path + "category.txt"
-    total_corpus_path = file_root_path + "train.json"
+    total_corpus_path = file_root_path + "total_corpus.json"
     train_corpus_path = file_root_path + "train.json"
     test_corpus_path = file_root_path + "test.json"
     cache_file_path = file_root_path + "cache.txt"
@@ -42,21 +44,24 @@ class ClassifierConfig(object):
     max_num_features = 35000
     # 是否使用二元字词
     is_use_bigram = False
-    # 获取可用的CPU数量，用于配置分类器
-    cpu_counts = cpu_count()
+    # 获取可用的CPU数量，用于配置分类器，使用四分之三的CPU
+    cpu_counts = cpu_count() * 3 / 4
     # 分类器代号
     rf_name = "rf"
-    gbdt_name = "gbdt"
+    xgb_name = "xgb"
     svm_name = "svm"
+    lr_name = "lr"
     grid_search_name = "grid"
-    rf_prams = {"n_estimators": 200, "n_jobs": -1, "random_state": 1, "max_depth": 200, "min_samples_split": 15,
+
+    rf_prams = {"n_estimators": 200, "n_jobs": cpu_counts, "random_state": 1, "max_depth": 200, "min_samples_split": 15,
                 "min_samples_leaf": 20}
-    gbdt_prams = {}
+    xgb_prams = {"max_depth": 50}
     svm_prams = {}
+    lr_prams = {"random_state": 1, "n_jobs": cpu_counts}
 
     rf_grid_search_prams = {"max_depth": range(50, 150, 20)}
     gsearch = GridSearchCV(estimator=RandomForestClassifier(n_estimators=200, oob_score=True,
-                                                            random_state=1, n_jobs=-1, min_samples_leaf=15,
+                                                            random_state=1, n_jobs=cpu_counts, min_samples_leaf=15,
                                                             min_samples_split=20),
                            param_grid=rf_grid_search_prams, iid=False, cv=3)
 
@@ -67,34 +72,39 @@ class ClassifierConfig(object):
     # 能够预测，给出概率的分类器
     can_predict_pro_classifiers = [rf_name]
 
-    cur_single_model = grid_search_name
+    cur_single_model = xgb_name
 
     # 现在需要进行boosting的分类器集合
-    boosting_using_classifiers = [rf_name, gbdt_name, svm_name]
+    boosting_using_classifiers = [rf_name, xgb_name, svm_name]
 
     rf_model_path = file_root_path + "rf_model.pkl"
-    gbdt_model_path = file_root_path + "gbdt_model.pkl"
+    xgb_model_path = file_root_path + "xgb_model.pkl"
     svm_model_path = file_root_path + "svm_model.pkl"
+    lr_model_path = file_root_path + "lr.pkl"
+
     grid_search_model_path = file_root_path + "grid_model.pkl"
 
     boosting_model_path = file_root_path + "boosting_model.pkl"
 
     classifier_path_dic = {rf_name: rf_model_path,
-                           gbdt_name: gbdt_model_path,
+                           xgb_name: xgb_model_path,
                            svm_name: svm_model_path,
+                           lr_name: lr_model_path,
                            grid_search_name: grid_search_model_path}
 
     classifier_pram_dic = {rf_name: rf_prams,
-                           gbdt_name: gbdt_prams,
-                           svm_name: svm_prams}
+                           xgb_name: xgb_prams,
+                           svm_name: svm_prams,
+                           lr_name: lr_prams}
 
     classifier_init_dic = {rf_name: RandomForestClassifier(**classifier_pram_dic[rf_name]),
-                           gbdt_name: GradientBoostingClassifier(**classifier_pram_dic[gbdt_name]),
+                           xgb_name: GradientBoostingClassifier(**classifier_pram_dic[xgb_name]),
                            svm_name: LinearSVC(**classifier_pram_dic[svm_name]),
+                           lr_name: LogisticRegression(**classifier_pram_dic[lr_name]),
                            grid_search_name: gsearch}
 
     classifier_weight_dic = {rf_name: 1,
-                             gbdt_name: 1,
+                             xgb_name: 1,
                              svm_name: 1}
 
     boosting_weight_dic = file_root_path + "boosting_weight_dic.pkl"
