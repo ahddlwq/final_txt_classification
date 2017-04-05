@@ -56,7 +56,8 @@ class ClassifierConfig(object):
 
     rf_prams = {"n_estimators": 200, "n_jobs": cpu_counts, "random_state": 1, "max_depth": 200, "min_samples_split": 15,
                 "min_samples_leaf": 20}
-    xgb_prams = {"max_depth": 50, "seed": 1}
+    xgb_prams = {"max_depth": 30, "seed": 1, "nthread": cpu_counts, "silent": True, "n_estimators": 50,
+                 "subsample": 0.8}
     svm_prams = {}
     lr_prams = {"random_state": 1, "n_jobs": cpu_counts}
 
