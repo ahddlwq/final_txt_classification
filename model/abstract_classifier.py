@@ -1,9 +1,11 @@
 # coding=UTF-8
 import cPickle
+
 import numpy as np
 
 from config.config import ClassifierConfig, FilePathConfig
 from misc.util import Util
+
 
 class AbstractClassifier(object):
 
@@ -69,6 +71,7 @@ class AbstractClassifier(object):
             Util.quit()
         else:
             Util.log_tool.log.debug("loading model")
+            print self.model_path
             self.model = cPickle.load(open(self.model_path, 'r'))
 
     def train(self, feature_mat, label_vec):
@@ -123,6 +126,7 @@ class AbstractClassifier(object):
         cur_line_num = 0
         for index in xrange(feature_mat.shape[0]):
             x = feature_mat.getrow(index).toarray()
+            # 得到的是一个[[]]的矩阵，把里面的第一个[]取出来就是需要的单行特征向量
             X.append(x[0])
             cur_line_num += 1
             if cur_line_num >= minibatch_size:

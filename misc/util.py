@@ -3,9 +3,10 @@ import codecs
 import os
 import sys
 
+from sklearn.datasets import dump_svmlight_file
 from sklearn.datasets import load_svmlight_file
 
-from config.config import FilePathConfig
+from config.config import FilePathConfig, ClassifierConfig
 from log_tool import LogTool
 
 
@@ -56,8 +57,12 @@ class Util(object):
 
     @staticmethod
     def get_libsvm_data(path):
-        data = load_svmlight_file(path)
+        data = load_svmlight_file(path, n_features=ClassifierConfig.max_num_features)
         return data[0], data[1]
+
+    @staticmethod
+    def save_svmlight_file(x, y, path):
+        dump_svmlight_file(x, y, path, False)
 
 if __name__ == '__main__':
     util = Util()

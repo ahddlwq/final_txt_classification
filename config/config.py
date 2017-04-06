@@ -21,6 +21,9 @@ class FilePathConfig(object):
     lexicon_pkl_path = file_root_path + "lexicon.pkl"
     stop_words_path = file_root_path + "stop_words.txt"
 
+    raw_news_path = file_root_path + "news.json"
+    raw_feature_path = file_root_path + "raw_mat.txt"
+
     file_encodeing = "UTF-8"
     is_need_print_detail = False
 
@@ -74,10 +77,12 @@ class ClassifierConfig(object):
     is_single_model = True
     is_grid_search = True
 
+    # 用于迭代产生训练数据的分类器
+    train_data_claasifiers = [lr_name, svm_name, rf_name]
     # 能够预测，给出概率的分类器
     can_predict_pro_classifiers = [rf_name, xgb_name, lr_name]
 
-    cur_single_model = gnb_name
+    cur_single_model = svm_name
 
     # 现在需要进行boosting的分类器集合
     boosting_using_classifiers = [rf_name, xgb_name, svm_name]

@@ -158,7 +158,11 @@ class MainClassifier(object):
 
     # 从文件分类多篇文档，循环调用分类单篇文档，返回多个结果
     def classify_documents_top_k_from_file(self, raw_documents_file_path, k):
-        feature_mat = self.corpus_to_feature_mat_from_file(raw_documents_file_path)
+        if Util.is_file(FilePathConfig.raw_feature_path):
+            print "load raw mat"
+            feature_mat, label_vec = Util.get_libsvm_data(FilePathConfig.raw_feature_path)
+        else:
+            feature_mat = self.corpus_to_feature_mat_from_file(raw_documents_file_path)
         classify_results = self.classify_documents_top_k(feature_mat, k)
         return classify_results
 
@@ -202,6 +206,7 @@ class MainClassifier(object):
     def corpus_to_feature_mat_from_file(self, corpus_path):
         data = codecs.open(corpus_path, 'rb', FilePathConfig.file_encodeing, 'ignore')
         sparse_mat = self.data_to_feature(data)
+        Util.save_svmlight_file(sparse_mat, np.zeros(sparse_mat.shape[0]), FilePathConfig.raw_feature_path)
         data.close()
         return sparse_mat
 
@@ -211,6 +216,7 @@ class MainClassifier(object):
         weight = list()
         row_num = 0
         for line in data:
+            print row_num
             document = Document(line)
             content_words = document.get_content_words_feature()
             doc_len = len(content_words)
@@ -309,7 +315,8 @@ class MainClassifier(object):
         self.filters.append(stop_words_filter)
         self.filters.append(speech_filter)
 
-if __name__ == '__main__':
+
+def main1():
     # 训练和评测阶段，这里把所有可能需要自定义的参数全部都移到配置文件里了，如果需要也可以换成传参调用的形式
     # 需要外面传进来的参数只有训练集的位置和验证集的位置
     mainClassifier = MainClassifier()
@@ -320,6 +327,9 @@ if __name__ == '__main__':
     mainClassifier.train(FilePathConfig.train_corpus_path)
     # # 测试
     mainClassifier.test(FilePathConfig.test_corpus_path)
+
+
+def main2():
     # ----------------------------------------------------------------------------------------------------
     # 对外来的数据进行分类
     mainClassifier = MainClassifier()
@@ -338,3 +348,25 @@ if __name__ == '__main__':
     # # 返回多个分类和其概率
     classify_results = mainClassifier.classify_documents_top_k(feature_mat, k)
     print classify_results
+
+
+def main3():
+    main_classifier = MainClassifier()
+    for cur_classiier in ClassifierConfig.train_data_claasifiers:
+        ClassifierConfig.cur_single_model = cur_classiier
+        main_classifier.set_model()
+        print ClassifierConfig.cur_single_model
+        results = main_classifier.classify_documents_from_file(FilePathConfig.raw_news_path)
+        Util.save_object_into_pkl(results,
+                                  FilePathConfig.file_root_path + ClassifierConfig.cur_single_model + "-raw_results.txt")
+
+
+def main4():
+    x = FilePathConfig.file_root_path + "svm-raw_results.txt"
+    x = Util.load_object_from_pkl(x)
+    print x
+    print len(x)
+
+
+if __name__ == '__main__':
+    main4()
