@@ -3,6 +3,8 @@ import codecs
 import os
 import sys
 
+from sklearn.datasets import load_svmlight_file
+
 from config.config import FilePathConfig
 from log_tool import LogTool
 
@@ -51,6 +53,11 @@ class Util(object):
     @staticmethod
     def is_file(file_path):
         return os.path.isfile(file_path)
+
+    @staticmethod
+    def get_libsvm_data(path):
+        data = load_svmlight_file(path)
+        return data[0], data[1]
 
 if __name__ == '__main__':
     util = Util()

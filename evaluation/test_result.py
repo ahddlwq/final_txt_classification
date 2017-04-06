@@ -10,7 +10,11 @@ class TestResult(object):
         self.predicted_class = predicted_class
         self.raw_class_label = raw_class_label
         self.labels = labels
-        pass
+        self.macro_precision = None
+        self.macro_recall = None
+        self.classification_report = None
+        self.confusion_matrix = None
+        self.prams = ClassifierConfig.classifier_pram_dic[ClassifierConfig.cur_single_model]
 
     # def __str__(self):
     #     return "Test set size: " + str(self.test_size) + "\n" \
@@ -34,4 +38,5 @@ class TestResult(object):
     def save_report(self):
         time = datetime.now().strftime("-%Y-%m-%d-%H-%M")
         label = time + '-' + ClassifierConfig.cur_single_model
+
         Util.save_object_into_pkl(self, str(FilePathConfig.result_report_path) % label)

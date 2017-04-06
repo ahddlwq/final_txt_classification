@@ -6,7 +6,6 @@ import sys
 sys.path.append("../")
 import numpy as np
 from scipy.sparse import csr_matrix
-from sklearn.datasets import load_svmlight_file
 
 from config.config import FilePathConfig, ClassifierConfig
 from evaluation.test_result import TestResult
@@ -16,6 +15,7 @@ from feature_extractor.entity.lexicon import Lexicon
 from feature_extractor.entity.termweight import TfOnlyTermWeighter, TfIdfWighter
 from feature_extractor.feature_filter.speech_filter import SpeechFilter
 from feature_extractor.feature_filter.stop_word_filter import StopWordFilter
+from feature_extractor.feature_filter.common_filter import CommonFilter
 from feature_extractor.feature_selection_functions.chi_square import ChiSquare
 from feature_extractor.feature_selection_functions.informantion_gain import InformationGain
 from misc.util import Util
@@ -23,6 +23,7 @@ from model.abstract_classifier import AbstractClassifier
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
+
 
 class MainClassifier(object):
     def __init__(self):
@@ -47,6 +48,8 @@ class MainClassifier(object):
         self.longest_length_doc = 0
         # 文章的总数量
         self.num_doc = 0
+        # 特征过滤器
+        self.filters = []
 
 
     # -----------------------------------------------------------------------------------------------------------------
@@ -69,7 +72,6 @@ class MainClassifier(object):
         self.lexicon.locked = True
         # 保存下词典映射文件
         self.save_lexicon_into_pkl()
-
 
     def output_selected_features_and_get_fid_dic(self, selected_features_queue):
         selected_features_file = codecs.open(FilePathConfig.selected_features_path, 'wb', FilePathConfig.file_encodeing,
@@ -104,10 +106,9 @@ class MainClassifier(object):
             self.cache_file = codecs.open(FilePathConfig.cache_file_path, 'wb', FilePathConfig.file_encodeing, 'ignore')
 
         # 如果需要对文章的内容进行过滤，则添加词的过滤器
-        if not ClassifierConfig.is_use_bigram:
-            stop_words_filter = StopWordFilter()
-            speech_filter = SpeechFilter()
-            document.add_filter(speech_filter).add_filter(stop_words_filter)
+        # if not ClassifierConfig.is_use_bigram:
+        #     for feature_filter in self.filters:
+        #         document.add_filter(feature_filter)
 
         # 从文档中拿出我们需要的特征
         content_words = document.get_content_words_feature()
@@ -204,10 +205,6 @@ class MainClassifier(object):
         data.close()
         return sparse_mat
 
-    def get_libsvm_data(self, path):
-        data = load_svmlight_file(path)
-        return data[0], data[1]
-
     def data_to_feature(self, data):
         row = list()
         col = list()
@@ -233,7 +230,7 @@ class MainClassifier(object):
     def corpus_to_feature_and_label_mat(self, corpus_path, result_path):
         if Util.is_file(result_path):
             Util.log_tool.log.debug("loading data")
-            return self.get_libsvm_data(result_path)
+            return Util.get_libsvm_data(result_path)
         data = codecs.open(corpus_path, 'rb', FilePathConfig.file_encodeing, 'ignore')
         sparse_mat = codecs.open(result_path, 'wb', FilePathConfig.file_encodeing, 'ignore')
         count = 0
@@ -258,7 +255,7 @@ class MainClassifier(object):
 
         data.close()
         sparse_mat.close()
-        return self.get_libsvm_data(result_path)
+        return Util.get_libsvm_data(result_path)
 
     def set_model(self):
         if ClassifierConfig.is_single_model:
@@ -303,6 +300,14 @@ class MainClassifier(object):
         if self.cache_file is not None:
             Util.log_tool.log.debug("close cache")
             self.cache_file.close()
+
+    def init_filter(self):
+        common_filter = CommonFilter()
+        stop_words_filter = StopWordFilter()
+        speech_filter = SpeechFilter()
+        self.filters.append(common_filter)
+        self.filters.append(stop_words_filter)
+        self.filters.append(speech_filter)
 
 if __name__ == '__main__':
     # 训练和评测阶段，这里把所有可能需要自定义的参数全部都移到配置文件里了，如果需要也可以换成传参调用的形式

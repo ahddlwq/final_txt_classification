@@ -5,8 +5,8 @@ import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.grid_search import GridSearchCV
 from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import LinearSVC
-
 
 class FilePathConfig(object):
     file_root_path = "../file/"
@@ -19,6 +19,7 @@ class FilePathConfig(object):
     train_feature_mat_path = file_root_path + "train_sparse_feature_mat.txt"
     test_feature_mat_path = file_root_path + "test_sparse_feature_mat.txt"
     lexicon_pkl_path = file_root_path + "lexicon.pkl"
+    stop_words_path = file_root_path + "stop_words.txt"
 
     file_encodeing = "UTF-8"
     is_need_print_detail = False
@@ -52,6 +53,7 @@ class ClassifierConfig(object):
     xgb_name = "xgb"
     svm_name = "svm"
     lr_name = "lr"
+    gnb_name = "gnb"
     grid_search_name = "grid"
 
     rf_prams = {"n_estimators": 200, "n_jobs": cpu_counts, "random_state": 1, "max_depth": 200, "min_samples_split": 15,
@@ -59,6 +61,7 @@ class ClassifierConfig(object):
     xgb_prams = {"max_depth": 30, "seed": 1, "nthread": cpu_counts, "silent": False, "n_estimators": 50,
                  "subsample": 0.8}
     svm_prams = {}
+    gnb_prams = {}
     lr_prams = {"random_state": 1, "n_jobs": cpu_counts}
 
     rf_grid_search_prams = {"max_depth": range(50, 150, 20)}
@@ -72,9 +75,9 @@ class ClassifierConfig(object):
     is_grid_search = True
 
     # 能够预测，给出概率的分类器
-    can_predict_pro_classifiers = [rf_name]
+    can_predict_pro_classifiers = [rf_name, xgb_name]
 
-    cur_single_model = xgb_name
+    cur_single_model = lr_name
 
     # 现在需要进行boosting的分类器集合
     boosting_using_classifiers = [rf_name, xgb_name, svm_name]
@@ -82,7 +85,8 @@ class ClassifierConfig(object):
     rf_model_path = file_root_path + "rf_model.pkl"
     xgb_model_path = file_root_path + "xgb_model.pkl"
     svm_model_path = file_root_path + "svm_model.pkl"
-    lr_model_path = file_root_path + "lr.pkl"
+    lr_model_path = file_root_path + "lr_model.pkl"
+    gnb_model_path = file_root_path + "gnb_model.pkl"
 
     grid_search_model_path = file_root_path + "grid_model.pkl"
 
@@ -92,17 +96,20 @@ class ClassifierConfig(object):
                            xgb_name: xgb_model_path,
                            svm_name: svm_model_path,
                            lr_name: lr_model_path,
+                           gnb_name: gnb_model_path,
                            grid_search_name: grid_search_model_path}
 
     classifier_pram_dic = {rf_name: rf_prams,
                            xgb_name: xgb_prams,
                            svm_name: svm_prams,
-                           lr_name: lr_prams}
+                           lr_name: lr_prams,
+                           gnb_name: gnb_prams}
 
     classifier_init_dic = {rf_name: RandomForestClassifier(**classifier_pram_dic[rf_name]),
                            xgb_name: xgb.XGBClassifier(**classifier_pram_dic[xgb_name]),
                            svm_name: LinearSVC(**classifier_pram_dic[svm_name]),
                            lr_name: LogisticRegression(**classifier_pram_dic[lr_name]),
+                           gnb_name: GaussianNB(**classifier_pram_dic[gnb_name]),
                            grid_search_name: gsearch}
 
     classifier_weight_dic = {rf_name: 1,
