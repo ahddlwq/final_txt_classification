@@ -75,7 +75,7 @@ class ClassifierConfig(object):
     is_grid_search = True
 
     # 能够预测，给出概率的分类器
-    can_predict_pro_classifiers = [rf_name, xgb_name]
+    can_predict_pro_classifiers = [rf_name, xgb_name, lr_name]
 
     cur_single_model = gnb_name
 

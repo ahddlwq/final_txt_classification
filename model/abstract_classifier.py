@@ -13,7 +13,7 @@ class AbstractClassifier(object):
         self.model_path = None
         pass
 
-    def classify_top_k(self, documents, top_k):
+    def classify_top_k(self, feature_mat, top_k):
         if self.model is None:
             self.load_model()
         # 检查top_k
@@ -21,14 +21,17 @@ class AbstractClassifier(object):
             top_k = 1
         top_k = int(top_k)
 
+        if ClassifierConfig.cur_single_model == ClassifierConfig.gnb_name:
+            return self.partial_classify_top_k(feature_mat, top_k)
+
         final_results = []
         # 如果当前分类器支持返回概率，则走概率
         if (top_k == 1) | (ClassifierConfig.cur_single_model not in ClassifierConfig.can_predict_pro_classifiers):
-            raw_results = self.model.predict(documents)
+            raw_results = self.model.predict(feature_mat)
             for raw_result in raw_results:
                 final_results.append([(raw_result, 1)])
         else:
-            pro_of_lines = self.model.predict_proba(documents)
+            pro_of_lines = self.model.predict_proba(feature_mat)
             for pro_of_line in pro_of_lines:
                 line_result = []
                 # 降序获得概率最大的
@@ -38,12 +41,24 @@ class AbstractClassifier(object):
                 final_results.append(line_result)
         return final_results
 
-    # def classify_top_k(self, documents, top_k):
-    #     if self.model is None:
-    #         self.load_model()
-    #
-    #     raw_results = self.model.predict(documents)
-    #     return raw_results
+    def partial_classify_top_k(self, feature_mat, top_k):
+        final_results = []
+        minibatch_train_iterators = self.iter_minibatches_only_x(feature_mat, minibatch_size=2000)
+        for i, X_train in enumerate(minibatch_train_iterators):
+            if top_k == 1:
+                raw_results = self.model.predict(X_train)
+                for raw_result in raw_results:
+                    final_results.append([(raw_result, 1)])
+            else:
+                pro_of_lines = self.model.predict_proba(X_train)
+                for pro_of_line in pro_of_lines:
+                    line_result = []
+                    # 降序获得概率最大的
+                    pro_index = np.argsort(-pro_of_line)
+                    for i in range(top_k):
+                        line_result.append((self.model.classes_[pro_index[i]], pro_of_line[pro_index[i]]))
+                    final_results.append(line_result)
+        return final_results
 
     def save_model(self):
         cPickle.dump(self.model, open(self.model_path, 'w'))
@@ -73,7 +88,7 @@ class AbstractClassifier(object):
         minibatch_train_iterators = self.iter_minibatches(feature_mat, label_vec, minibatch_size=2000)
 
         for i, (X_train, y_train) in enumerate(minibatch_train_iterators):
-            print "iter i"
+            print "iter ", i
             self.model.partial_fit(X_train, y_train, classes=np.array(range(0, 30)))
 
     def iter_minibatches(self, feature_mat, label_vec, minibatch_size=1000):
@@ -87,16 +102,30 @@ class AbstractClassifier(object):
         cur_line_num = 0
         for index in xrange(feature_mat.shape[0]):
             x = feature_mat.getrow(index).toarray()
-            X.append(x[0])  # 这里要将数据转化成float类型
+            X.append(x[0])
             y.append(label_vec[index])
 
             cur_line_num += 1
             if cur_line_num >= minibatch_size:
-                X = np.array(X)  # 将数据转成numpy的array类型并返回
+                # 将数据转成numpy的array类型并返回
+                X = np.array(X)
                 y = np.array(y)
                 yield X, y
                 X = []
                 y = []
+                cur_line_num = 0
+
+    def iter_minibatches_only_x(self, feature_mat, minibatch_size=2000):
+        X = []
+        cur_line_num = 0
+        for index in xrange(feature_mat.shape[0]):
+            x = feature_mat.getrow(index).toarray()
+            X.append(x[0])
+            cur_line_num += 1
+            if cur_line_num >= minibatch_size:
+                X = np.array(X)
+                yield X
+                X = []
                 cur_line_num = 0
 
 
