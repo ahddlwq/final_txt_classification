@@ -1,6 +1,5 @@
 # coding=UTF-8
 import cPickle
-
 import numpy as np
 
 from config.config import ClassifierConfig, FilePathConfig
@@ -45,6 +44,7 @@ class AbstractClassifier(object):
         final_results = []
         minibatch_train_iterators = self.iter_minibatches_only_x(feature_mat, minibatch_size=2000)
         for i, X_train in enumerate(minibatch_train_iterators):
+            print "iter ", i
             if top_k == 1:
                 raw_results = self.model.predict(X_train)
                 for raw_result in raw_results:
@@ -115,6 +115,9 @@ class AbstractClassifier(object):
                 y = []
                 cur_line_num = 0
 
+        if len(y) > 0:
+            yield X, y
+
     def iter_minibatches_only_x(self, feature_mat, minibatch_size=2000):
         X = []
         cur_line_num = 0
@@ -127,6 +130,8 @@ class AbstractClassifier(object):
                 yield X
                 X = []
                 cur_line_num = 0
+        if len(X) > 0:
+            yield X
 
 
 if __name__ == '__main__':

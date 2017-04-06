@@ -312,14 +312,14 @@ class MainClassifier(object):
 if __name__ == '__main__':
     # 训练和评测阶段，这里把所有可能需要自定义的参数全部都移到配置文件里了，如果需要也可以换成传参调用的形式
     # 需要外面传进来的参数只有训练集的位置和验证集的位置
-    # mainClassifier = MainClassifier()
-    # Util.log_tool.log.debug("lexicon locked:" + str(mainClassifier.lexicon.locked))
-    # # # 根据原始语料进行语料预处理（切词、过滤、特征降维）
-    # mainClassifier.construct_lexicon(FilePathConfig.total_corpus_path)
-    # # # 训练
-    # mainClassifier.train(FilePathConfig.train_corpus_path)
-    # # # 测试
-    # mainClassifier.test(FilePathConfig.test_corpus_path)
+    mainClassifier = MainClassifier()
+    Util.log_tool.log.debug("lexicon locked:" + str(mainClassifier.lexicon.locked))
+    # # 根据原始语料进行语料预处理（切词、过滤、特征降维）
+    mainClassifier.construct_lexicon(FilePathConfig.total_corpus_path)
+    # # 训练
+    mainClassifier.train(FilePathConfig.train_corpus_path)
+    # # 测试
+    mainClassifier.test(FilePathConfig.test_corpus_path)
     # ----------------------------------------------------------------------------------------------------
     # 对外来的数据进行分类
     mainClassifier = MainClassifier()
