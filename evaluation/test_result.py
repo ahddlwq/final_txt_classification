@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sklearn import metrics
 
-from config.config import FilePathConfig
+from config.config import FilePathConfig, ClassifierConfig
 from misc.util import Util
 
 class TestResult(object):
@@ -33,4 +33,5 @@ class TestResult(object):
 
     def save_report(self):
         time = datetime.now().strftime("-%Y-%m-%d-%H-%M")
-        Util.save_object_into_pkl(self, str(FilePathConfig.result_report_path) % time)
+        label = time + '-' + ClassifierConfig.cur_single_model
+        Util.save_object_into_pkl(self, str(FilePathConfig.result_report_path) % label)
