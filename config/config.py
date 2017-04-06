@@ -10,8 +10,12 @@ from sklearn.svm import LinearSVC
 
 class FilePathConfig(object):
     file_root_path = "../file/"
+    config_root_path = "../config/"
+    category_file_path = config_root_path + "category.txt"
+
     category_pkl_path = file_root_path + "category.pkl"
-    category_file_path = file_root_path + "category.txt"
+    stop_words_path = config_root_path + "stop_words.txt"
+
     total_corpus_path = file_root_path + "total_corpus.json"
     train_corpus_path = file_root_path + "train.json"
     test_corpus_path = file_root_path + "test.json"
@@ -19,7 +23,6 @@ class FilePathConfig(object):
     train_feature_mat_path = file_root_path + "train_sparse_feature_mat.txt"
     test_feature_mat_path = file_root_path + "test_sparse_feature_mat.txt"
     lexicon_pkl_path = file_root_path + "lexicon.pkl"
-    stop_words_path = file_root_path + "stop_words.txt"
 
     raw_news_path = file_root_path + "news.json"
     raw_feature_path = file_root_path + "raw_mat.txt"

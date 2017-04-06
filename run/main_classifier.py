@@ -50,6 +50,7 @@ class MainClassifier(object):
         self.num_doc = 0
         # 特征过滤器
         self.filters = []
+        self.init_filter()
 
 
     # -----------------------------------------------------------------------------------------------------------------
@@ -106,9 +107,9 @@ class MainClassifier(object):
             self.cache_file = codecs.open(FilePathConfig.cache_file_path, 'wb', FilePathConfig.file_encodeing, 'ignore')
 
         # 如果需要对文章的内容进行过滤，则添加词的过滤器
-        # if not ClassifierConfig.is_use_bigram:
-        #     for feature_filter in self.filters:
-        #         document.add_filter(feature_filter)
+        if not ClassifierConfig.is_use_bigram:
+            for feature_filter in self.filters:
+                document.add_filter(feature_filter)
 
         # 从文档中拿出我们需要的特征
         content_words = document.get_content_words_feature()
@@ -132,6 +133,7 @@ class MainClassifier(object):
     # 添加多篇文档，循环调用添加单篇文档
     def add_documents(self, raw_documents):
         count = 0
+        self.init_filter()
         for raw_document in raw_documents:
             if count % 10000 == 0:
                 Util.log_tool.log.debug("加载" + str(count))
@@ -215,9 +217,14 @@ class MainClassifier(object):
         col = list()
         weight = list()
         row_num = 0
+
         for line in data:
             print row_num
             document = Document(line)
+            # 如果需要对文章的内容进行过滤，则添加词的过滤器
+            if not ClassifierConfig.is_use_bigram:
+                for feature_filter in self.filters:
+                    document.add_filter(feature_filter)
             content_words = document.get_content_words_feature()
             doc_len = len(content_words)
             words = self.lexicon.convert_document(content_words)
