@@ -3,6 +3,7 @@ import cPickle
 import codecs
 import sys
 
+sys.path.append("../")
 import numpy as np
 from scipy.sparse import csr_matrix
 from sklearn.datasets import load_svmlight_file
@@ -20,7 +21,6 @@ from feature_extractor.feature_selection_functions.informantion_gain import Info
 from misc.util import Util
 from model.abstract_classifier import AbstractClassifier
 
-sys.path.append("../")
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
