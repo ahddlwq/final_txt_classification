@@ -73,7 +73,8 @@ class AbstractClassifier(object):
         minibatch_train_iterators = self.iter_minibatches(feature_mat, label_vec, minibatch_size=2000)
 
         for i, (X_train, y_train) in enumerate(minibatch_train_iterators):
-            self.model.partial_fit(X_train, y_train)
+            print "iter i"
+            self.model.partial_fit(X_train, y_train, classes=np.array(range(0, 30)))
 
     def iter_minibatches(self, feature_mat, label_vec, minibatch_size=1000):
         '''
@@ -84,16 +85,12 @@ class AbstractClassifier(object):
         X = []
         y = []
         cur_line_num = 0
-        index = 0
-        for line in feature_mat:
-            x = np.zeros(ClassifierConfig.max_num_features)
-
+        for index in xrange(feature_mat.shape[0]):
+            x = feature_mat.getrow(index).toarray()
+            X.append(x[0])  # 这里要将数据转化成float类型
             y.append(label_vec[index])
 
-            X.append(x)  # 这里要将数据转化成float类型
-
             cur_line_num += 1
-            index += 1
             if cur_line_num >= minibatch_size:
                 X = np.array(X)  # 将数据转成numpy的array类型并返回
                 y = np.array(y)
@@ -105,6 +102,11 @@ class AbstractClassifier(object):
 
 if __name__ == '__main__':
     abstract = AbstractClassifier()
+    print "loading"
     feature_mat, label_vec = Util.get_libsvm_data(FilePathConfig.test_feature_mat_path)
+    print "iter"
     minibatch_train_iterators = abstract.iter_minibatches(feature_mat, label_vec, minibatch_size=2000)
-    # for i, (X_train, y_train) in enumerate(minibatch_train_iterators):
+    for i, (X_train, y_train) in enumerate(minibatch_train_iterators):
+        if i == 1:
+            print [x for x in X_train[0] if x > 0], y_train
+            # print i, X_train.shape, y_train.shape
