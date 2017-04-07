@@ -2,7 +2,7 @@ import codecs
 
 from config.config import FilePathConfig
 from feature_extractor.entity.document import Document
-from misc.util import Util
+from util.util import Util
 
 total_corpus = codecs.open(FilePathConfig.test_corpus_path, "r", FilePathConfig.file_encodeing, "strict")
 cate_dic = Util.load_object_from_pkl(FilePathConfig.category_pkl_path)

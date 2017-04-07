@@ -4,7 +4,7 @@ import cPickle
 import numpy as np
 
 from config.config import ClassifierConfig, FilePathConfig
-from misc.util import Util
+from util.util import Util
 
 
 class AbstractClassifier(object):

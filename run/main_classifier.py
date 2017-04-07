@@ -18,7 +18,7 @@ from feature_extractor.feature_filter.stop_word_filter import StopWordFilter
 from feature_extractor.feature_filter.common_filter import CommonFilter
 from feature_extractor.feature_selection_functions.chi_square import ChiSquare
 from feature_extractor.feature_selection_functions.informantion_gain import InformationGain
-from misc.util import Util
+from util.util import Util
 from model.abstract_classifier import AbstractClassifier
 
 reload(sys)

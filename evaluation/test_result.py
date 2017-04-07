@@ -3,7 +3,7 @@ from datetime import datetime
 from sklearn import metrics
 
 from config.config import FilePathConfig, ClassifierConfig
-from misc.util import Util
+from util.util import Util
 
 class TestResult(object):
     def __init__(self, predicted_class, raw_class_label, labels):

@@ -7,7 +7,7 @@ from sklearn.datasets import dump_svmlight_file
 from sklearn.datasets import load_svmlight_file
 
 from config.config import FilePathConfig, ClassifierConfig
-from log_tool import LogTool
+from util.log_tool import LogTool
 
 
 class Util(object):
