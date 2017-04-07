@@ -370,11 +370,11 @@ def main3():
 
 
 def main4():
-    x = FilePathConfig.file_root_path + "svm-raw_results.txt"
+    x = FilePathConfig.file_root_path + "lr-raw_results.txt"
     x = Util.load_object_from_pkl(x)
     print x
     print len(x)
 
 
 if __name__ == '__main__':
-    main4()
+    main3()

@@ -81,11 +81,11 @@ class ClassifierConfig(object):
     is_grid_search = True
 
     # 用于迭代产生训练数据的分类器
-    train_data_claasifiers = [lr_name, svm_name, rf_name]
+    train_data_claasifiers = [rf_name, svm_name, lr_name, xgb_name]
     # 能够预测，给出概率的分类器
     can_predict_pro_classifiers = [rf_name, xgb_name, lr_name]
 
-    cur_single_model = rf_name
+    cur_single_model = gnb_name
 
     # 现在需要进行boosting的分类器集合
     boosting_using_classifiers = [rf_name, xgb_name, svm_name]
