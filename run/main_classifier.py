@@ -360,6 +360,7 @@ def main2():
 def main3():
     main_classifier = MainClassifier()
     for cur_classiier in ClassifierConfig.train_data_claasifiers:
+        main_classifier.abstract_classifier.model = None
         ClassifierConfig.cur_single_model = cur_classiier
         main_classifier.set_model()
         print ClassifierConfig.cur_single_model
@@ -376,4 +377,4 @@ def main4():
 
 
 if __name__ == '__main__':
-    main3()
+    main1()

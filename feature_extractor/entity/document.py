@@ -34,10 +34,10 @@ class Document(object):
         self.label = None
 
         if len(split_data) > 1:
-        # 目前因为已经把数据处理好，节省时间，所以就按这种方式取
-        self.words = split_data[1].strip().split(',')
-        self.raw_content = split_data[2].strip()
-        self.label = split_data[3].strip()
+            # 目前因为已经把数据处理好，节省时间，所以就按这种方式取
+            self.words = split_data[1].strip().split(',')
+            self.raw_content = split_data[2].strip()
+            self.label = split_data[3].strip()
 
         if (ClassifierConfig.is_use_bigram):
             self.abstract_extractor = BiGramExtractor()
@@ -101,6 +101,7 @@ class Document(object):
         content = content.replace('\n', '')
         # content = content.replace(' ', '')
 
+        content = content.split()
         # 对添加的filter进行排序，使优先级高的先进行过滤
         sorted(self.filters)
         for filter in self.filters:
