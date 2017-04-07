@@ -1,7 +1,7 @@
 # coding=UTF-8
-import cPickle
 
 import numpy as np
+from sklearn.externals import joblib
 
 from config.config import ClassifierConfig, FilePathConfig
 from util.util import Util
@@ -63,7 +63,8 @@ class AbstractClassifier(object):
         return final_results
 
     def save_model(self):
-        cPickle.dump(self.model, open(self.model_path, 'w'))
+        joblib.dump(self.model, self.model_path)
+        # cPickle.dump(self.model, open(self.model_path, 'w'))
 
     def load_model(self):
         if not Util.is_file(self.model_path):
@@ -72,7 +73,8 @@ class AbstractClassifier(object):
         else:
             Util.log_tool.log.debug("loading model")
             print self.model_path
-            self.model = cPickle.load(open(self.model_path, 'r'))
+            self.model = joblib.load(self.model_path)
+            # self.model = cPickle.load(open(self.model_path, 'r'))
 
     def train(self, feature_mat, label_vec):
         self.model = ClassifierConfig.classifier_init_dic[ClassifierConfig.cur_single_model]

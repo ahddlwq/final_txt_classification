@@ -49,23 +49,22 @@ class Document(object):
         return self
 
     # 目前因为已经把数据处理好，所以加了一层检验
-    # def get_content_words_feature(self):
-    #     if len(self.words) == 0:
-    #         raw_content = self.abstract_extractor.extract(self.raw_content)
-    #     else:
-    #         raw_content = self.words
-    #
-    #     # 对添加的filter进行排序，使优先级高的先进行过滤
-    #     sorted(self.filters)
-    #     for filter in self.filters:
-    #         raw_content = filter.filter(raw_content)
-    #     return raw_content
+    def get_content_words_feature(self):
+        # if len(self.words) == 0:
+        #     raw_content = self.abstract_extractor.extract(self.raw_content)
+        # else:
+        #     raw_content = self.words
+        content = self.splitContent
+        content = re.sub('_[A-Za-z]+', '', content)
+        words = content.split()
+        words = [word.lower() for word in words if len(word.strip()) > 1]
+        return words
 
     def get_new_feature(self):
         pass
 
     # 从正文中取出词，并过滤
-    def get_content_words_feature(self):
+    def get_filtered_content_words_feature(self):
         content = self.splitContent
         # content = re.sub('_[A-Za-z]+', '', content)
         content = re.sub('http://(.*).jpg', '', content)

@@ -112,7 +112,7 @@ class MainClassifier(object):
                 document.add_filter(feature_filter)
 
         # 从文档中拿出我们需要的特征
-        content_words = document.get_content_words_feature()
+        content_words = document.get_filtered_content_words_feature()
         self.lexicon.add_document(content_words)
         words = self.lexicon.convert_document(content_words)
         terms = self.training_vector_builder.build(words, False, 0)
@@ -222,9 +222,9 @@ class MainClassifier(object):
             print row_num
             document = Document(line)
             # 如果需要对文章的内容进行过滤，则添加词的过滤器
-            if not ClassifierConfig.is_use_bigram:
-                for feature_filter in self.filters:
-                    document.add_filter(feature_filter)
+            # if not ClassifierConfig.is_use_bigram:
+            #     for feature_filter in self.filters:
+            #         document.add_filter(feature_filter)
             content_words = document.get_content_words_feature()
             doc_len = len(content_words)
             words = self.lexicon.convert_document(content_words)
@@ -253,7 +253,7 @@ class MainClassifier(object):
                 Util.log_tool.log.debug("add" + str(count))
             document = Document(line)
             label_id = self.category_dic[document.label]
-            content_words = document.get_content_words_feature()
+            content_words = document.get_filtered_content_words_feature()
             doc_len = len(content_words)
 
             words = self.lexicon.convert_document(content_words)
@@ -377,4 +377,4 @@ def main4():
 
 
 if __name__ == '__main__':
-    main1()
+    main4()
