@@ -161,7 +161,7 @@ class MainClassifier(object):
     # 从文件分类多篇文档，循环调用分类单篇文档，返回多个结果
     def classify_documents_top_k_from_file(self, raw_documents_file_path, k):
         if Util.is_file(FilePathConfig.raw_feature_path):
-            print "load raw mat"
+            Util.log_tool.log.debug("load raw mat")
             feature_mat, label_vec = Util.get_libsvm_data(FilePathConfig.raw_feature_path)
         else:
             feature_mat = self.corpus_to_feature_mat_from_file(raw_documents_file_path)
@@ -363,7 +363,7 @@ def main3():
         main_classifier.abstract_classifier.model = None
         ClassifierConfig.cur_single_model = cur_classiier
         main_classifier.set_model()
-        print ClassifierConfig.cur_single_model
+        Util.log_tool.log.debug(ClassifierConfig.cur_single_model)
         results = main_classifier.classify_documents_from_file(FilePathConfig.raw_news_path)
         Util.save_object_into_pkl(results,
                                   FilePathConfig.file_root_path + ClassifierConfig.cur_single_model + "-raw_results.txt")
