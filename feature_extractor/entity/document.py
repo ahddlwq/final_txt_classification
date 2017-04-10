@@ -17,12 +17,13 @@ class Document(object):
         self.json = json_data
         self.splitContent = json_object['splitContent']
         self.id = json_object['ID']
+        self.title = json_object['title']
+
 
         self.words = []
         self.source = ""
         self.keywords = []
         self.summary = ""
-        self.title = ""
         self.tag = []
         self.label_id = -1
         self.label = ""
