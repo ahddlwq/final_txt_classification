@@ -5,6 +5,7 @@ import re
 from config.config import ClassifierConfig
 from feature_extractor.word_extractor.bigram_extractor import BiGramExtractor
 from feature_extractor.word_extractor.common_word_extractor import CommonWordExtractor
+from util.util import Util
 
 
 class Document(object):
@@ -33,11 +34,14 @@ class Document(object):
         self.raw_content = None
         self.label = None
 
-        if len(split_data) > 1:
+        if len(split_data) == 4:
             # 目前因为已经把数据处理好，节省时间，所以就按这种方式取
             self.words = split_data[1].strip().split(',')
             self.raw_content = split_data[2].strip()
             self.label = split_data[3].strip()
+
+        if len(split_data) == 2:
+            self.label = split_data[1].strip()
 
         if (ClassifierConfig.is_use_bigram):
             self.abstract_extractor = BiGramExtractor()
@@ -67,37 +71,7 @@ class Document(object):
     def get_filtered_content_words_feature(self):
         content = self.splitContent
         # content = re.sub('_[A-Za-z]+', '', content)
-        content = re.sub('http://(.*).jpg', '', content)
-        content = re.sub('http://(.*).gif', '', content)
-        content = re.sub('http://(.*).undefined', '', content)
-        content = re.sub('http://(.*)search', '', content)
-        content = re.sub('http://(.*)tml', '', content)
-        content = re.sub('http://(.*)html', '', content)
-        content = re.sub('http://(.*)shtml', '', content)
-        content = re.sub('http://(.*).jpeg', '', content)
-        content = re.sub('http://(.*)com', '', content)
-        content = re.sub('http://(.*)cn', '', content)
-        content = re.sub('http://(.*).png', '', content)
-        content = re.sub('http://(.*)net', '', content)
-        content = re.sub('_(.*).jpg', '', content)
-        content = re.sub('_(.*).jpeg', '', content)
-        content = re.sub('_(.*).png', '', content)
-        content = re.sub('_(.*).gif', '', content)
-        content = re.sub('_(.*).undefined', '', content)
-        content = re.sub('_(.*)html', '', content)
-        content = re.sub('_(.*).tml', '', content)
-        content = re.sub('_(.*)shtml', '', content)
-        content = re.sub('_(.*).com', '', content)
-        content = re.sub('_(.*).cn', '', content)
-        content = re.sub('_(.*).net', '', content)
-        content = re.sub('deg', '', content)
-        content = re.sub('nbsp', '', content)
-        content = re.sub('quot', '', content)
-        content = re.sub('middot', '', content)
-        content = re.sub('&', '', content)
-        content = re.sub('http://[0-9A-Za-z?=\-\.\/]+', '', content)
-        content = re.sub('http://(.*)/', '', content)
-        content = content.replace('\n', '')
+        content = Util.filter_text(content)
         # content = content.replace(' ', '')
 
         content = content.split()

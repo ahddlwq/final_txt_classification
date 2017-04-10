@@ -1,6 +1,7 @@
 import cPickle
 import codecs
 import os
+import re
 import sys
 
 from sklearn.datasets import dump_svmlight_file
@@ -63,6 +64,42 @@ class Util(object):
     @staticmethod
     def save_svmlight_file(x, y, path):
         dump_svmlight_file(x, y, path, False)
+
+    @staticmethod
+    def filter_text(content):
+        content = re.sub('http://(.*).jpg', '', content)
+        content = re.sub('http://(.*).gif', '', content)
+        content = re.sub('http://(.*).undefined', '', content)
+        content = re.sub('http://(.*)search', '', content)
+        content = re.sub('http://(.*)tml', '', content)
+        content = re.sub('http://(.*)html', '', content)
+        content = re.sub('http://(.*)shtml', '', content)
+        content = re.sub('http://(.*).jpeg', '', content)
+        content = re.sub('http://(.*)com', '', content)
+        content = re.sub('http://(.*)cn', '', content)
+        content = re.sub('http://(.*).png', '', content)
+        content = re.sub('http://(.*)net', '', content)
+        content = re.sub('_(.*).jpg', '', content)
+        content = re.sub('_(.*).jpeg', '', content)
+        content = re.sub('_(.*).png', '', content)
+        content = re.sub('_(.*).gif', '', content)
+        content = re.sub('_(.*).undefined', '', content)
+        content = re.sub('_(.*)html', '', content)
+        content = re.sub('_(.*).tml', '', content)
+        content = re.sub('_(.*)shtml', '', content)
+        content = re.sub('_(.*).com', '', content)
+        content = re.sub('_(.*).cn', '', content)
+        content = re.sub('_(.*).net', '', content)
+        content = re.sub('deg', '', content)
+        content = re.sub('nbsp', '', content)
+        content = re.sub('quot', '', content)
+        content = re.sub('middot', '', content)
+        content = re.sub('&', '', content)
+        content = re.sub('http://[0-9A-Za-z?=\-\.\/]+', '', content)
+        content = re.sub('http://(.*)/', '', content)
+        content = content.replace('\n', '')
+
+        return content
 
 if __name__ == '__main__':
     util = Util()

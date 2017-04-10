@@ -366,7 +366,7 @@ def main3():
         Util.log_tool.log.debug(ClassifierConfig.cur_single_model)
         results = main_classifier.classify_documents_from_file(FilePathConfig.raw_news_path)
         Util.save_object_into_pkl(results,
-                                  FilePathConfig.file_root_path + ClassifierConfig.cur_single_model + "-raw_results.txt")
+                                  FilePathConfig.file_root_path + ClassifierConfig.cur_single_model + "-raw_results.pkl")
 
 
 def main4():
