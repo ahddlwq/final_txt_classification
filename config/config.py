@@ -62,8 +62,8 @@ class ClassifierConfig(object):
     gnb_name = "gnb"
     grid_search_name = "grid"
 
-    rf_prams = {"n_estimators": 100, "n_jobs": cpu_counts, "random_state": 1, "max_depth": 100, "min_samples_split": 3,
-                "min_samples_leaf": 3}
+    rf_prams = {"n_estimators": 100, "n_jobs": cpu_counts, "random_state": 1, "max_depth": 100, "min_samples_split": 5,
+                "min_samples_leaf": 5}
     xgb_prams = {"max_depth": 30, "seed": 1, "nthread": cpu_counts, "silent": False, "n_estimators": 50,
                  "subsample": 0.8}
     svm_prams = {}
@@ -85,7 +85,7 @@ class ClassifierConfig(object):
     # 能够预测，给出概率的分类器
     can_predict_pro_classifiers = [rf_name, xgb_name, lr_name]
 
-    cur_single_model = gnb_name
+    cur_single_model = rf_name
 
     # 现在需要进行boosting的分类器集合
     boosting_using_classifiers = [rf_name, xgb_name, svm_name]
