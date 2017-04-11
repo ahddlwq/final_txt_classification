@@ -22,7 +22,7 @@ class AbstractClassifier(object):
             top_k = 1
         top_k = int(top_k)
 
-        if ClassifierConfig.cur_single_model == ClassifierConfig.gnb_name:
+        if ClassifierConfig.cur_single_model in ClassifierConfig.can_partial_train_predict_classifiers:
             return self.partial_classify_top_k(feature_mat, top_k)
 
         final_results = []
@@ -79,7 +79,7 @@ class AbstractClassifier(object):
     def train(self, feature_mat, label_vec):
         self.model = ClassifierConfig.classifier_init_dic[ClassifierConfig.cur_single_model]
         Util.log_tool.log.debug("model training")
-        if ClassifierConfig.cur_single_model == ClassifierConfig.gnb_name:
+        if ClassifierConfig.cur_single_model in ClassifierConfig.can_partial_train_predict_classifiers:
             self.partial_train(feature_mat, label_vec)
         else:
             self.model.fit(feature_mat, label_vec)

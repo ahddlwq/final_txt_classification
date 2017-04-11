@@ -1,33 +1,33 @@
 from config.config import FilePathConfig
 from util.util import Util
 
-# lr_path = FilePathConfig.file_root_path + "lr-raw_results.txt"
-# svm_path = FilePathConfig.file_root_path + "svm-raw_results.txt"
-# xgb_path = FilePathConfig.file_root_path + "xgb-raw_results.txt"
-#
-# lr_results = Util.load_object_from_pkl(lr_path)
-# svm_results = Util.load_object_from_pkl(svm_path)
-# xgb_results = Util.load_object_from_pkl(xgb_path)
-#
-# length = len(lr_results)
-# result = []
-#
-#
-# for i in xrange(length):
-#     print i
-#     lr_result = lr_results[i][0][0]
-#     svm_result = svm_results[i][0][0]
-#     xgb_result = xgb_results[i][0][0]
-#     if lr_result == xgb_result and svm_result == xgb_result:
-#         result.append((i, lr_result, 3, lr_result, svm_result, xgb_result))
-#     elif lr_result == xgb_result or svm_result == xgb_result:
-#         result.append((i, xgb_result, 2, lr_result, svm_result, xgb_result))
-#     elif lr_result == svm_result:
-#         result.append((i, lr_result, 1, lr_result, svm_result, xgb_result))
-#     else:
-#         result.append((i, svm_result, 0, lr_result, svm_result, xgb_result))
-#
-# Util.save_object_into_pkl(result, FilePathConfig.file_root_path + "result2.pkl")
+lr_path = FilePathConfig.file_root_path + "lr-raw_results.pkl"
+svm_path = FilePathConfig.file_root_path + "svm-raw_results.pkl"
+xgb_path = FilePathConfig.file_root_path + "xgb-raw_results.pkl"
+
+lr_results = Util.load_object_from_pkl(lr_path)
+svm_results = Util.load_object_from_pkl(svm_path)
+xgb_results = Util.load_object_from_pkl(xgb_path)
+
+length = len(lr_results)
+print length
+result = []
+
+for i in xrange(length):
+    print i
+    lr_result = lr_results[i][0][0]
+    svm_result = svm_results[i][0][0]
+    xgb_result = xgb_results[i][0][0]
+    if lr_result == xgb_result and svm_result == xgb_result:
+        result.append((i, lr_result, 3, lr_result, svm_result, xgb_result))
+    elif lr_result == xgb_result or svm_result == xgb_result:
+        result.append((i, xgb_result, 2, lr_result, svm_result, xgb_result))
+    elif lr_result == svm_result:
+        result.append((i, lr_result, 1, lr_result, svm_result, xgb_result))
+    else:
+        result.append((i, svm_result, 0, lr_result, svm_result, xgb_result))
+
+Util.save_object_into_pkl(result, FilePathConfig.file_root_path + "result2.pkl")
 
 result = Util.load_object_from_pkl(FilePathConfig.file_root_path + "result2.pkl")
 weight_dic = {}
