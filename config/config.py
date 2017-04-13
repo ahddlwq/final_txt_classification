@@ -62,6 +62,7 @@ class ClassifierConfig(object):
     gnb_name = "gnb"
     mnb_name = "mnb"
     grid_search_name = "grid"
+    boosting_name = "boosting"
 
     rf_prams = {"n_estimators": 100, "n_jobs": cpu_counts, "random_state": 1, "max_depth": 100, "min_samples_split": 5,
                 "min_samples_leaf": 5}
@@ -95,16 +96,14 @@ class ClassifierConfig(object):
     # 现在需要进行boosting的分类器集合
     boosting_using_classifiers = [rf_name, xgb_name, svm_name]
 
-    rf_model_path = file_root_path + "rf_model.pkl"
-    xgb_model_path = file_root_path + "xgb_model.pkl"
-    svm_model_path = file_root_path + "svm_model.pkl"
-    lr_model_path = file_root_path + "lr_model.pkl"
-    gnb_model_path = file_root_path + "gnb_model.pkl"
-    mnb_model_path = file_root_path + "mnb_model.pkl"
-
-    grid_search_model_path = file_root_path + "grid_model.pkl"
-
-    boosting_model_path = file_root_path + "boosting_model.pkl"
+    rf_model_path = file_root_path + "model_" + rf_name + ".pkl"
+    xgb_model_path = file_root_path + "model_" + xgb_name + ".pkl"
+    svm_model_path = file_root_path + "model_" + svm_name + ".pkl"
+    lr_model_path = file_root_path + "model_" + lr_name + ".pkl"
+    gnb_model_path = file_root_path + "model_" + gnb_name + ".pkl"
+    mnb_model_path = file_root_path + "model_" + mnb_name + ".pkl"
+    grid_search_model_path = file_root_path + "model_" + grid_search_name + ".pkl"
+    boosting_model_path = file_root_path + "model_" + boosting_name + ".pkl"
 
     classifier_path_dic = {rf_name: rf_model_path,
                            xgb_name: xgb_model_path,

@@ -12,9 +12,9 @@ sys.setdefaultencoding('UTF-8')
 
 data_path = "../file/"
 
-data = codecs.open(data_path + "filter_type_data.txt", 'r', 'utf-8', 'ignore')
+data = codecs.open(data_path + "match_result.txt", 'r', 'utf-8', 'ignore')
 
-match_result = codecs.open(data_path + "filter_type_news_with_content.txt", 'w', 'utf-8', 'ignore')
+match_result = codecs.open(data_path + "new_corpus.txt", 'w', 'utf-8', 'ignore')
 
 common_filter = CommonFilter()
 stop_words_filter = StopWordFilter()
