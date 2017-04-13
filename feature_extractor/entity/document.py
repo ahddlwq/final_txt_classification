@@ -14,11 +14,19 @@ class Document(object):
         json_data = split_data[0]
 
         json_object = json.loads(json_data)
+
         self.json = json_data
-        self.splitContent = json_object['splitContent']
+        if json_object.has_key("splitContent"):
+            self.splitContent = json_object['splitContent']
+        else:
+            self.splitContent = None
+
+        if json_object.has_key("splitTitle"):
+            if self.splitContent is not None:
+                self.splitContent += json_object['splitTitle']
+
         self.id = json_object['ID']
         self.title = json_object['title']
-
 
         self.words = []
         self.source = ""
@@ -34,7 +42,6 @@ class Document(object):
         self.words = None
         self.raw_content = None
         self.label = None
-
         if len(split_data) == 4:
             # 目前因为已经把数据处理好，节省时间，所以就按这种方式取
             self.words = split_data[1].strip().split(',')
@@ -60,6 +67,8 @@ class Document(object):
         # else:
         #     raw_content = self.words
         content = self.splitContent
+        if content is None:
+            return None
         content = re.sub('_[A-Za-z]+', '', content)
         words = content.split()
         words = [word.lower() for word in words if len(word.strip()) > 1]
@@ -70,15 +79,26 @@ class Document(object):
 
     # 从正文中取出词，并过滤
     def get_filtered_content_words_feature(self):
+        if self.words is not None:
+            return self.words
         content = self.splitContent
-        # content = re.sub('_[A-Za-z]+', '', content)
+        if content is None:
+            return None
         content = Util.filter_text(content)
-        # content = content.replace(' ', '')
-
         content = content.split()
+
         # 对添加的filter进行排序，使优先级高的先进行过滤
         sorted(self.filters)
         for filter in self.filters:
             content = filter.filter(content)
 
         return content
+
+    def get_raw_content(self):
+        content = self.splitContent
+        if content is None:
+            return None
+        content = re.sub('_[A-Za-z]+', '', content)
+        content = Util.filter_text(content)
+        content = content.replace(' ', '')
+        return content.strip()
