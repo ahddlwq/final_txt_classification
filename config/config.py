@@ -89,12 +89,13 @@ class ClassifierConfig(object):
     # 能够预测，给出概率的分类器
     can_predict_pro_classifiers = [rf_name, xgb_name, lr_name, gnb_name, mnb_name]
 
-    can_partial_train_predict_classifiers = [gnb_name, mnb_name]
+    need_partial_train_predict_classifiers = [gnb_name]
 
     cur_single_model = mnb_name
 
     # 现在需要进行boosting的分类器集合
-    boosting_using_classifiers = [rf_name, xgb_name, svm_name]
+    boosting_using_classifiers = [lr_name, xgb_name, mnb_name, svm_name, ]
+    classifier_weight_dic = {lr_name: 1, xgb_name: 1, mnb_name: 1, svm_name: 1}
 
     rf_model_path = file_root_path + "model_" + rf_name + ".pkl"
     xgb_model_path = file_root_path + "model_" + xgb_name + ".pkl"
@@ -127,10 +128,6 @@ class ClassifierConfig(object):
                            gnb_name: GaussianNB(**classifier_pram_dic[gnb_name]),
                            grid_search_name: gsearch,
                            mnb_name: MultinomialNB(**classifier_pram_dic[mnb_name])}
-
-    classifier_weight_dic = {lr_name: 1,
-                             xgb_name: 1,
-                             svm_name: 1}
 
     boosting_weight_dic = file_root_path + "boosting_weight_dic.pkl"
 

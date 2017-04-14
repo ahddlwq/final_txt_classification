@@ -20,6 +20,7 @@ from feature_extractor.feature_selection_functions.chi_square import ChiSquare
 from feature_extractor.feature_selection_functions.informantion_gain import InformationGain
 from util.util import Util
 from model.abstract_classifier import AbstractClassifier
+from model.vote_classifier import VoteClassifier
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -191,14 +192,14 @@ class MainClassifier(object):
 
     def train(self, train_corpus_path):
         Util.log_tool.log.debug("train")
-        self.set_model()
+        # self.set_model()
         train_feature_mat, label_vec = self.corpus_to_feature_and_label_mat(train_corpus_path,
                                                                             FilePathConfig.train_feature_mat_path)
         self.abstract_classifier.train(train_feature_mat, label_vec)
 
     def test(self, test_corpus_path):
         Util.log_tool.log.debug("test")
-        self.set_model()
+        # self.set_model()
         test_sparse_mat, label_vec = self.corpus_to_feature_and_label_mat(test_corpus_path,
                                                                           FilePathConfig.test_feature_mat_path)
         predicted_class_and_pro = self.classify_documents(test_sparse_mat)
@@ -276,6 +277,7 @@ class MainClassifier(object):
                 ClassifierConfig.cur_single_model]
         else:
             Util.log_tool.log.debug("not single model")
+            self.abstract_classifier = VoteClassifier()
 
     def load_lexicon(self):
         if Util.is_file(FilePathConfig.lexicon_pkl_path):
@@ -330,6 +332,7 @@ def main1():
     Util.log_tool.log.debug("lexicon locked:" + str(mainClassifier.lexicon.locked))
     # # 根据原始语料进行语料预处理（切词、过滤、特征降维）
     mainClassifier.construct_lexicon(FilePathConfig.total_corpus_path)
+    mainClassifier.set_model()
     # # 训练
     mainClassifier.train(FilePathConfig.train_corpus_path)
     # # 测试
