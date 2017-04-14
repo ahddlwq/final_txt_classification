@@ -2,6 +2,7 @@
 import codecs
 import sys
 
+sys.path.append("../")
 from feature_extractor.entity.document import Document
 
 reload(sys)

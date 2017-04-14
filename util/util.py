@@ -4,6 +4,7 @@ import os
 import re
 import sys
 
+sys.path.append("../")
 from sklearn.datasets import dump_svmlight_file
 from sklearn.datasets import load_svmlight_file
 
@@ -103,5 +104,5 @@ class Util(object):
 
 if __name__ == '__main__':
     util = Util()
-    # util.save_cate_dic_into_pkl()
-    util.log_tool.log.info("asd2")
+    util.save_cate_dic_into_pkl()
+    # util.log_tool.log.info("asd2")

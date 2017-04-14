@@ -24,7 +24,7 @@ class FilePathConfig(object):
     test_feature_mat_path = file_root_path + "test_sparse_feature_mat.txt"
     lexicon_pkl_path = file_root_path + "lexicon.pkl"
 
-    raw_news_path = file_root_path + "news.json"
+    raw_news_path = file_root_path + "unlabeled_news.json"
     raw_feature_path = file_root_path + "raw_mat.txt"
 
     file_encodeing = "UTF-8"
